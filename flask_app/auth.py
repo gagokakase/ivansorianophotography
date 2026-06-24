@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 import secrets
 import requests
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app, jsonify
@@ -115,7 +116,11 @@ def register():
 
 @auth_bp.route("/auth/facebook")
 def facebook_login():
-    redirect_uri = url_for("auth.facebook_callback", _external=True, _scheme="https")
+    base_url = os.environ.get("OAUTH_REDIRECT_BASE", "").rstrip("/")
+    if base_url:
+        redirect_uri = base_url + "/auth/facebook/callback"
+    else:
+        redirect_uri = url_for("auth.facebook_callback", _external=True, _scheme="https")
     print(f"DEBUG Facebook redirect_uri: {redirect_uri}", flush=True)
     state = secrets.token_urlsafe(16)
     fb_app_id = current_app.config["FB_APP_ID"]
@@ -138,7 +143,11 @@ def facebook_callback():
         flash("Facebook authorization failed.", "error")
         return redirect(url_for("auth.register"))
 
-    redirect_uri = url_for("auth.facebook_callback", _external=True, _scheme="https")
+    base_url = os.environ.get("OAUTH_REDIRECT_BASE", "").rstrip("/")
+    if base_url:
+        redirect_uri = base_url + "/auth/facebook/callback"
+    else:
+        redirect_uri = url_for("auth.facebook_callback", _external=True, _scheme="https")
     fb_app_id = current_app.config["FB_APP_ID"]
     fb_app_secret = current_app.config["FB_APP_SECRET"]
 
@@ -194,7 +203,11 @@ def facebook_callback():
 
 @auth_bp.route("/auth/google")
 def google_login():
-    redirect_uri = url_for("auth.google_callback", _external=True, _scheme="https")
+    base_url = os.environ.get("OAUTH_REDIRECT_BASE", "").rstrip("/")
+    if base_url:
+        redirect_uri = base_url + "/auth/google/callback"
+    else:
+        redirect_uri = url_for("auth.google_callback", _external=True, _scheme="https")
     print(f"DEBUG Google redirect_uri: {redirect_uri}", flush=True)
     state = secrets.token_urlsafe(16)
     client_id = current_app.config["GOOGLE_CLIENT_ID"]
@@ -218,7 +231,11 @@ def google_callback():
         flash("Google authorization failed.", "error")
         return redirect(url_for("auth.register"))
 
-    redirect_uri = url_for("auth.google_callback", _external=True, _scheme="https")
+    base_url = os.environ.get("OAUTH_REDIRECT_BASE", "").rstrip("/")
+    if base_url:
+        redirect_uri = base_url + "/auth/google/callback"
+    else:
+        redirect_uri = url_for("auth.google_callback", _external=True, _scheme="https")
     client_id = current_app.config["GOOGLE_CLIENT_ID"]
     client_secret = current_app.config["GOOGLE_CLIENT_SECRET"]
 
