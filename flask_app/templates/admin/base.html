@@ -146,7 +146,7 @@
 
       <!-- User info -->
       <div class="px-6 py-5" style="border-top: 1px solid rgba(200,169,110,0.1);">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 mb-4">
           <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 16px; font-weight: 600;">
             {{ current_user.name[0] if current_user.name else 'A' }}
           </div>
@@ -155,6 +155,9 @@
             <span style="color: var(--isp-text-muted); font-size: 13px;">{{ current_user.email }}</span>
           </div>
         </div>
+        <a href="/logout" class="flex items-center justify-center gap-2 w-full py-3 rounded-lg transition-all hover:bg-red-900/30" style="color: #ef6b6b; font-size: 15px; font-weight: 500; border: 1px solid rgba(239,107,107,0.2);">
+          <i class="bi bi-box-arrow-right" style="font-size: 18px;"></i> Logout
+        </a>
       </div>
     </aside>
 
