@@ -94,6 +94,8 @@ function filterPortfolio(category, btn) {
     if (category === "All" || cat === category) {
       item.style.display = "";
       item.classList.remove("hide");
+      item.style.gridColumn = "";
+      item.style.gridRow = "";
     } else {
       item.classList.add("hide");
       setTimeout(function () {
@@ -103,6 +105,27 @@ function filterPortfolio(category, btn) {
       }, 300);
     }
   });
+
+  // Re-flow grid: when not "All", make visible items fill naturally
+  if (category !== "All") {
+    var visible = [];
+    items.forEach(function (item) {
+      if (item.style.display !== "none" && !item.classList.contains("hide")) {
+        visible.push(item);
+      }
+    });
+    // Reset grid positions for visible items
+    visible.forEach(function (item, i) {
+      item.style.gridColumn = "";
+      item.style.gridRow = "";
+    });
+    // Make grid auto-flow dense to fill gaps
+    var grid = document.getElementById("portfolio-grid");
+    if (grid) grid.style.gridAutoFlow = "dense";
+  } else {
+    var grid = document.getElementById("portfolio-grid");
+    if (grid) grid.style.gridAutoFlow = "";
+  }
 }
 
 // ---- Lightbox ----
