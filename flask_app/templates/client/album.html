@@ -146,11 +146,6 @@
         style="background-color: rgba(8,12,9,0.8); border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold);">
         <i class="bi bi-download" style="font-size: 20px;"></i>
       </a>
-
-      <div class="absolute bottom-3 left-0 right-0 text-center">
-        <p id="lightbox-title" style="font-family: var(--font-display); color: var(--isp-cream); font-size: 26px;"></p>
-        <p id="lightbox-date" class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); font-size: 15px; letter-spacing: 0.15em; margin-top: 4px;"></p>
-      </div>
     </div>
   </div>
 
@@ -158,13 +153,9 @@
     function openLightbox(src, title, date, photoId) {
       var lb = document.getElementById('lightbox');
       var img = document.getElementById('lightbox-img');
-      var titleEl = document.getElementById('lightbox-title');
-      var dateEl = document.getElementById('lightbox-date');
       var dl = document.getElementById('lightbox-download');
       img.src = src;
       img.alt = title;
-      titleEl.textContent = title;
-      dateEl.textContent = date;
       dl.href = '/client/download/' + photoId;
       lb.style.display = 'flex';
     }
