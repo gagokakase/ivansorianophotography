@@ -132,19 +132,22 @@
   <!-- Lightbox -->
   <div id="lightbox" class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
     style="background-color: rgba(8,12,9,0.95); display: none;">
-    <div class="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center">
-      <img id="lightbox-img" src="" alt="" class="max-w-full max-h-[80vh] object-contain rounded-lg" />
+
+    <div id="lightbox-modal" class="relative rounded-2xl"
+      style="background-color: #0c1210; border: 1px solid rgba(200,169,110,0.2); padding: 56px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+
+      <img id="lightbox-img" src="" alt="" class="block max-w-[82vw] max-h-[72vh] object-contain rounded-lg" />
 
       <button onclick="closeLightbox()"
-        class="absolute top-3 right-3 w-12 h-12 flex items-center justify-center rounded-full transition-colors hover:border-isp-gold"
-        style="background-color: rgba(8,12,9,0.8); border: 1px solid rgba(200,169,110,0.3); color: var(--isp-cream);">
-        <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        class="absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:border-isp-gold"
+        style="background-color: rgba(200,169,110,0.1); border: 1px solid rgba(200,169,110,0.25); color: var(--isp-cream);">
+        <i class="bi bi-x-lg" style="font-size: 16px;"></i>
       </button>
 
       <a id="lightbox-download" href="" download
-        class="absolute top-3 left-3 w-12 h-12 flex items-center justify-center rounded-full transition-colors hover:border-isp-gold"
-        style="background-color: rgba(8,12,9,0.8); border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold);">
-        <i class="bi bi-download" style="font-size: 20px;"></i>
+        class="absolute top-2 left-2 w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:border-isp-gold"
+        style="background-color: rgba(200,169,110,0.1); border: 1px solid rgba(200,169,110,0.25); color: var(--isp-gold);">
+        <i class="bi bi-download" style="font-size: 16px;"></i>
       </a>
     </div>
   </div>
