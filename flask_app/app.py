@@ -11,8 +11,17 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "isp-secret-key-change-in-production")
-app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(os.path.dirname(os.path.abspath(__file__)), "site.db")
+app.config["UPLOAD_FOLDER"] = os.environ.get("UPLOAD_FOLDER", os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads"))
+
+database_url = os.environ.get("DATABASE_URL") or os.environ.get("MYSQL_URL")
+if database_url:
+    if database_url.startswith("mysql://"):
+        database_url = database_url.replace("mysql://", "mysql+pymysql://", 1)
+    elif database_url.startswith("mysql+pymysql://"):
+        pass
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(os.path.dirname(os.path.abspath(__file__)), "site.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 app.config["SESSION_COOKIE_DURATION"] = timedelta(minutes=30)
@@ -148,4 +157,5 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)
