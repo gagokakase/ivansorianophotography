@@ -187,6 +187,7 @@
         </button>
       </div>
       <form method="POST" action="" id="edit-album-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-5">
           <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Album Name</label>
           <input type="text" name="name" id="edit-album-name" required class="admin-input" placeholder="Album name" />
@@ -215,6 +216,7 @@
         </button>
       </div>
       <form method="POST" action="/admin/albums/create">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-5">
           <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Album Name</label>
           <input type="text" name="name" required class="admin-input" placeholder="e.g. Mark & Dianne Wedding" />

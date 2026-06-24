@@ -818,7 +818,7 @@ function saveCover() {
 
   fetch('/admin/albums/' + albumId + '/cover', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
     body: JSON.stringify(payload)
   })
   .then(function(r) { return r.json(); })
@@ -896,7 +896,7 @@ function saveCover() {
 
 function removePhoto(albumId, photoId) {
   if (!confirm('Remove this photo from the album?')) return;
-  fetch('/admin/albums/' + albumId + '/photos/' + photoId, { method: 'DELETE' })
+  fetch('/admin/albums/' + albumId + '/photos/' + photoId, { method: 'DELETE', headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data.success) location.reload();
@@ -916,7 +916,7 @@ function saveAlbumAssignments() {
 
   fetch('/admin/albums/' + albumId + '/assign', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
     body: JSON.stringify({ client_ids: clientIds })
   })
   .then(function(r) { return r.json(); })
@@ -992,7 +992,7 @@ function reorderPhotos(draggedId, targetId) {
 
   fetch('/admin/albums/' + albumId + '/reorder', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
     body: JSON.stringify({ photo_ids: photoIds })
   }).then(function(r) { return r.json(); }).then(function(data) {
     if (!data.success) alert(data.message);

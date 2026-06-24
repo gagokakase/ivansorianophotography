@@ -134,6 +134,7 @@
         {% endwith %}
 
         <form method="POST" action="/register">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <div class="mb-5">
             <label class="block mb-2 uppercase" style="font-size: 11px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Full Name</label>
             <div class="relative">

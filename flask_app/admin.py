@@ -3,11 +3,10 @@ from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-from models import db, User, Photo, PhotoAssignment, Album, AlbumPhoto, AlbumAssignment, AlbumCoverPhoto
+from models import db, User, Photo, PhotoAssignment, Album, AlbumPhoto, AlbumAssignment, AlbumCoverPhoto, AdminLog
+from utils import sanitize_text, sanitize_password, validate_email, allowed_file, allowed_file_size, MAX_NAME_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
-
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 
 
 def admin_required(f):
@@ -20,8 +19,10 @@ def admin_required(f):
     return decorated
 
 
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+def log_action(user_id, action, detail=None):
+    entry = AdminLog(user_id=user_id, action=action, detail=detail)
+    db.session.add(entry)
+    db.session.commit()
 
 
 @admin_bp.route("/dashboard")
@@ -43,10 +44,10 @@ def dashboard():
 def profile():
     if request.method == "POST":
         action = request.form.get("action") or "update_info"
-        name = (request.form.get("name") or "").strip()
+        name = sanitize_text(request.form.get("name"), max_length=MAX_NAME_LENGTH)
         email = (request.form.get("email") or "").strip().lower()
-        password = request.form.get("password") or ""
-        current_password = request.form.get("current_password") or ""
+        password = sanitize_password(request.form.get("password"))
+        current_password = sanitize_password(request.form.get("current_password"))
 
         if action == "change_password":
             if not current_password:
@@ -60,12 +61,16 @@ def profile():
                 return redirect(url_for("admin.profile"))
             current_user.set_password(password)
             db.session.commit()
+            log_action(current_user.id, "password_change")
             flash("Password updated successfully.", "success")
             return redirect(url_for("admin.profile"))
 
         # Default: update info
         if not name or not email:
             flash("Name and email are required.", "error")
+            return redirect(url_for("admin.profile"))
+        if not validate_email(email):
+            flash("Please enter a valid email address.", "error")
             return redirect(url_for("admin.profile"))
 
         existing = User.query.filter_by(email=email).first()
@@ -76,6 +81,7 @@ def profile():
         current_user.name = name
         current_user.email = email
         db.session.commit()
+        log_action(current_user.id, "profile_update", f"Name: {name}, Email: {email}")
         flash("Profile updated successfully.", "success")
         return redirect(url_for("admin.profile"))
 
@@ -99,12 +105,15 @@ def clients():
 @admin_bp.route("/clients/create", methods=["POST"])
 @admin_required
 def create_client():
-    name = (request.form.get("name") or "").strip()
+    name = sanitize_text(request.form.get("name"), max_length=MAX_NAME_LENGTH)
     email = (request.form.get("email") or "").strip().lower()
-    password = request.form.get("password") or ""
+    password = sanitize_password(request.form.get("password"))
 
     if not name or not email or not password:
         flash("All fields are required.", "error")
+        return redirect(url_for("admin.clients"))
+    if not validate_email(email):
+        flash("Please enter a valid email address.", "error")
         return redirect(url_for("admin.clients"))
 
     if User.query.filter_by(email=email).first():
@@ -115,6 +124,7 @@ def create_client():
     user.set_password(password)
     db.session.add(user)
     db.session.commit()
+    log_action(current_user.id, "client_create", f"Client: {name} ({email})")
 
     flash(f"Client account created for {name}.", "success")
     return redirect(url_for("admin.clients"))
@@ -134,12 +144,15 @@ def edit_client(client_id):
             "email": client.email
         })
 
-    name = (request.form.get("name") or "").strip()
+    name = sanitize_text(request.form.get("name"), max_length=MAX_NAME_LENGTH)
     email = (request.form.get("email") or "").strip().lower()
-    password = request.form.get("password") or ""
+    password = sanitize_password(request.form.get("password"))
 
     if not name or not email:
         flash("Name and email are required.", "error")
+        return redirect(url_for("admin.clients"))
+    if not validate_email(email):
+        flash("Please enter a valid email address.", "error")
         return redirect(url_for("admin.clients"))
 
     existing = User.query.filter_by(email=email).first()
@@ -153,6 +166,7 @@ def edit_client(client_id):
         client.set_password(password)
 
     db.session.commit()
+    log_action(current_user.id, "client_edit", f"Client ID {client_id}: {name} ({email})")
     flash(f"Client {name} updated successfully.", "success")
     return redirect(url_for("admin.clients"))
 
@@ -166,6 +180,7 @@ def delete_client(client_id):
 
     db.session.delete(client)
     db.session.commit()
+    log_action(current_user.id, "client_delete", f"Client ID {client_id}")
     return jsonify({"success": True, "message": "Client deleted."})
 
 
@@ -183,7 +198,7 @@ def upload_photo():
         return redirect(url_for("admin.photos"))
 
     files = request.files.getlist("files")
-    title = (request.form.get("title") or "").strip()
+    title = sanitize_text(request.form.get("title"), max_length=MAX_TITLE_LENGTH)
 
     upload_dir = os.path.join(current_app.config["UPLOAD_FOLDER"])
     os.makedirs(upload_dir, exist_ok=True)
@@ -191,6 +206,9 @@ def upload_photo():
     uploaded = 0
     for f in files:
         if f and f.filename and allowed_file(f.filename):
+            if not allowed_file_size(f):
+                flash(f"File '{f.filename}' exceeds the 20MB size limit.", "error")
+                continue
             original = secure_filename(f.filename)
             # Add timestamp to avoid collisions
             import time
@@ -204,6 +222,7 @@ def upload_photo():
 
     if uploaded > 0:
         db.session.commit()
+        log_action(current_user.id, "photo_upload", f"{uploaded} photo(s), title: {title}")
         flash(f"{uploaded} photo(s) uploaded successfully.", "success")
     else:
         flash("No valid image files were uploaded.", "error")
@@ -222,6 +241,7 @@ def delete_photo(photo_id):
 
     db.session.delete(photo)
     db.session.commit()
+    log_action(current_user.id, "photo_delete", f"Photo ID {photo_id}")
     return jsonify({"success": True, "message": "Photo deleted."})
 
 
@@ -274,8 +294,8 @@ def albums():
 @admin_bp.route("/albums/create", methods=["POST"])
 @admin_required
 def create_album():
-    name = (request.form.get("name") or "").strip()
-    description = (request.form.get("description") or "").strip()
+    name = sanitize_text(request.form.get("name"), max_length=200)
+    description = sanitize_text(request.form.get("description"), max_length=MAX_DESCRIPTION_LENGTH)
 
     if not name:
         flash("Album name is required.", "error")
@@ -284,6 +304,7 @@ def create_album():
     album = Album(name=name, description=description, created_by=current_user.id)
     db.session.add(album)
     db.session.commit()
+    log_action(current_user.id, "album_create", f"Album: {name}")
 
     flash(f"Album '{name}' created.", "success")
     return redirect(url_for("admin.albums"))
@@ -301,8 +322,8 @@ def edit_album(album_id):
             "description": album.description or ""
         })
 
-    name = (request.form.get("name") or "").strip()
-    description = (request.form.get("description") or "").strip()
+    name = sanitize_text(request.form.get("name"), max_length=200)
+    description = sanitize_text(request.form.get("description"), max_length=MAX_DESCRIPTION_LENGTH)
 
     if not name:
         flash("Album name is required.", "error")
@@ -311,6 +332,7 @@ def edit_album(album_id):
     album.name = name
     album.description = description
     db.session.commit()
+    log_action(current_user.id, "album_edit", f"Album ID {album_id}: {name}")
     flash(f"Album '{name}' updated.", "success")
     return redirect(url_for("admin.albums"))
 
@@ -346,6 +368,8 @@ def upload_to_album(album_id):
     uploaded = 0
     for f in files:
         if f and f.filename and allowed_file(f.filename):
+            if not allowed_file_size(f):
+                continue
             original = secure_filename(f.filename)
             import time
             filename = f"{int(time.time())}_{uploaded}_{original}"
@@ -428,6 +452,7 @@ def set_album_cover(album_id):
             db.session.add(album_cover)
 
     db.session.commit()
+    log_action(current_user.id, "cover_update", f"Album ID {album_id}, layout: {layout}")
     return jsonify({"success": True, "message": "Cover updated."})
 
 
@@ -444,6 +469,7 @@ def reorder_photos(album_id):
             ap.order_index = i
 
     db.session.commit()
+    log_action(current_user.id, "photo_reorder", f"Album ID {album_id}")
     return jsonify({"success": True, "message": "Photo order updated."})
 
 
@@ -460,6 +486,7 @@ def assign_album(album_id):
         db.session.add(aa)
 
     db.session.commit()
+    log_action(current_user.id, "album_assign", f"Album ID {album_id}, clients: {len(client_ids)}")
     return jsonify({"success": True, "message": f"Album assigned to {len(client_ids)} client(s)."})
 
 
@@ -477,4 +504,16 @@ def delete_album(album_id):
     name = album.name
     db.session.delete(album)
     db.session.commit()
+    log_action(current_user.id, "album_delete", f"Album: {name}")
     return jsonify({"success": True, "message": f"Album '{name}' deleted."})
+
+
+@admin_bp.route("/logs")
+@admin_required
+def logs():
+    page = request.args.get("page", 1, type=int)
+    per_page = 50
+    pagination = AdminLog.query.order_by(AdminLog.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    return render_template("admin/logs.html", logs=pagination.items, pagination=pagination)

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
   <title>{% block title %}Admin — Ivan Soriano Photography{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -145,6 +146,9 @@
         <a href="/admin/albums" class="admin-nav-link" style="color: var(--isp-cream);">
           <i class="bi bi-collection" style="font-size: 20px;"></i> Albums
         </a>
+        <a href="/admin/logs" class="admin-nav-link" style="color: var(--isp-cream);">
+          <i class="bi bi-clock-history" style="font-size: 20px;"></i> Activity Log
+        </a>
       </nav>
 
       <!-- User info -->
@@ -255,9 +259,26 @@
 
     // Helper for DELETE requests
     async function deleteRequest(url) {
-      const res = await fetch(url, { method: 'DELETE' });
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      const res = await fetch(url, { method: 'DELETE', headers: { 'X-CSRFToken': csrfToken } });
       return res.json();
     }
+
+    // Session timeout — auto redirect after 30 min of inactivity
+    (function() {
+      var SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+      var timeoutTimer;
+      function resetTimeout() {
+        clearTimeout(timeoutTimer);
+        timeoutTimer = setTimeout(function() {
+          window.location.href = '/login';
+        }, SESSION_TIMEOUT);
+      }
+      ['mousemove', 'keydown', 'click', 'scroll'].forEach(function(evt) {
+        document.addEventListener(evt, resetTimeout, { passive: true });
+      });
+      resetTimeout();
+    })();
   </script>
   {% block scripts %}{% endblock %}
 </body>

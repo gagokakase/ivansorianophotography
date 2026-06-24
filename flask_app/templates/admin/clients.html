@@ -100,6 +100,7 @@
         </button>
       </div>
       <form method="POST" action="" id="edit-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <input type="hidden" name="id" id="edit-client-id" />
         <div class="mb-5">
           <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Full Name</label>
@@ -133,6 +134,7 @@
         </button>
       </div>
       <form method="POST" action="/admin/clients/create">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-5">
           <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Full Name</label>
           <input type="text" name="name" required class="admin-input" placeholder="Client name" />

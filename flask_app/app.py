@@ -1,15 +1,22 @@
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "isp-secret-key-change-in-production")
 app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(os.path.dirname(os.path.abspath(__file__)), "site.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
+app.config["SESSION_COOKIE_DURATION"] = timedelta(minutes=30)
+app.config["REMEMBER_COOKIE_DURATION"] = timedelta(minutes=30)
+app.config["WTF_CSRF_TIME_LIMIT"] = 3600
+
+csrf = CSRFProtect(app)
 
 # Initialize extensions
 from models import db, User
@@ -73,6 +80,7 @@ def index():
 
 
 @app.route("/api/contact", methods=["POST"])
+@csrf.exempt
 def contact():
     try:
         data = request.get_json(force=True)

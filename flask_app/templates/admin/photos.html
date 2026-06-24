@@ -72,6 +72,7 @@
         </button>
       </div>
       <form method="POST" action="/admin/photos/upload" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-5">
           <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Title (optional)</label>
           <input type="text" name="title" class="admin-input" placeholder="e.g. Mark & Dianne Wedding" />
@@ -152,7 +153,7 @@ function saveAssignments() {
 
   fetch('/admin/photos/' + currentPhotoId + '/assign', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
     body: JSON.stringify({ client_ids: clientIds })
   })
   .then(r => r.json())

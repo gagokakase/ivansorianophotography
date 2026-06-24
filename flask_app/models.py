@@ -15,6 +15,8 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="client")  # 'admin' or 'client'
     name = db.Column(db.String(100), nullable=False, default="")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    failed_login_count = db.Column(db.Integer, default=0)
+    locked_until = db.Column(db.DateTime, nullable=True)
 
     assignments = db.relationship("PhotoAssignment", backref="client", foreign_keys="PhotoAssignment.client_id", cascade="all, delete-orphan")
 
@@ -111,3 +113,15 @@ class AlbumAssignment(db.Model):
     client = db.relationship("User", foreign_keys=[client_id])
 
     __table_args__ = (db.UniqueConstraint("album_id", "client_id", name="uq_album_client"),)
+
+
+class AdminLog(db.Model):
+    __tablename__ = "admin_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    action = db.Column(db.String(100), nullable=False)
+    detail = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", foreign_keys=[user_id])
