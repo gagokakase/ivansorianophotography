@@ -3,7 +3,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 
@@ -74,6 +74,11 @@ if "client.export_selected" in app.view_functions:
 
 # Ensure upload directory exists
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+
+@app.route("/uploads/<path:filename>")
+def serve_upload(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 
 INQUIRIES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inquiries.json")
