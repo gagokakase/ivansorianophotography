@@ -52,3 +52,43 @@ class PhotoAssignment(db.Model):
     assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (db.UniqueConstraint("photo_id", "client_id", name="uq_photo_client"),)
+
+
+class Album(db.Model):
+    __tablename__ = "albums"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+
+    creator = db.relationship("User", foreign_keys=[created_by])
+    photos = db.relationship("AlbumPhoto", backref="album", cascade="all, delete-orphan", order_by="AlbumPhoto.added_at.desc()")
+    assignments = db.relationship("AlbumAssignment", backref="album", cascade="all, delete-orphan")
+
+
+class AlbumPhoto(db.Model):
+    __tablename__ = "album_photos"
+
+    id = db.Column(db.Integer, primary_key=True)
+    album_id = db.Column(db.Integer, db.ForeignKey("albums.id"), nullable=False)
+    photo_id = db.Column(db.Integer, db.ForeignKey("photos.id"), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    photo = db.relationship("Photo")
+
+    __table_args__ = (db.UniqueConstraint("album_id", "photo_id", name="uq_album_photo"),)
+
+
+class AlbumAssignment(db.Model):
+    __tablename__ = "album_assignments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    album_id = db.Column(db.Integer, db.ForeignKey("albums.id"), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    client = db.relationship("User", foreign_keys=[client_id])
+
+    __table_args__ = (db.UniqueConstraint("album_id", "client_id", name="uq_album_client"),)

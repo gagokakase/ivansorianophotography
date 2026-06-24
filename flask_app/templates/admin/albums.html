@@ -1,0 +1,125 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="admin-animate">
+
+  <!-- Page header -->
+  <div class="flex items-center justify-between mb-10">
+    <div>
+      <div class="flex items-center gap-4 mb-3">
+        <div style="width: 36px; height: 1px; background-color: var(--isp-gold);"></div>
+        <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Collections</span>
+      </div>
+      <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 48px; font-weight: 300; line-height: 1.1;">Albums</h1>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 17px;">Group photos into albums and assign them to clients.</p>
+    </div>
+    <button onclick="document.getElementById('create-album-modal').style.display='flex'"
+      class="admin-btn px-6 py-3.5 flex items-center gap-2" style="font-size: 15px;">
+      <i class="bi bi-collection" style="font-size: 18px;"></i> New Album
+    </button>
+  </div>
+
+  <!-- Albums grid -->
+  {% if albums %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for album in albums %}
+    <div class="admin-card rounded-lg overflow-hidden">
+      <!-- Cover preview -->
+      <a href="/admin/albums/{{ album.id }}" class="block">
+        <div class="grid grid-cols-2 gap-0.5" style="aspect-ratio: 16/9; background-color: rgba(31,72,48,0.15);">
+          {% set album_photos = album.photos[:4] %}
+          {% if album_photos|length > 0 %}
+            {% for ap in album_photos %}
+            <div style="overflow: hidden;">
+              <img src="{{ url_for('static', filename='uploads/' + ap.photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="col-span-2 flex items-center justify-center" style="background-color: rgba(31,72,48,0.15);">
+              <i class="bi bi-collection" style="font-size: 40px; color: var(--isp-text-muted);"></i>
+            </div>
+          {% endif %}
+        </div>
+      </a>
+      <!-- Info -->
+      <div class="p-6">
+        <a href="/admin/albums/{{ album.id }}">
+          <h3 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 22px; font-weight: 400;">{{ album.name }}</h3>
+        </a>
+        {% if album.description %}
+        <p class="mt-1.5" style="color: var(--isp-text-muted); font-size: 14px; line-height: 1.5;">{{ album.description[:80] }}{% if album.description|length > 80 %}...{% endif %}</p>
+        {% endif %}
+        <div class="flex items-center gap-4 mt-4">
+          <span class="inline-flex items-center gap-1.5" style="color: var(--isp-text-muted); font-size: 14px;">
+            <i class="bi bi-images" style="font-size: 16px;"></i> {{ album.photos|length }} photos
+          </span>
+          <span class="inline-flex items-center gap-1.5" style="color: var(--isp-text-muted); font-size: 14px;">
+            <i class="bi bi-people" style="font-size: 16px;"></i> {{ album.assignments|length }} clients
+          </span>
+        </div>
+        <div class="flex items-center gap-2 mt-5">
+          <a href="/admin/albums/{{ album.id }}" class="flex-1 text-center py-2.5 rounded-lg transition-all" style="background-color: rgba(31,72,48,0.3); color: var(--isp-cream); font-size: 14px; font-weight: 500;">
+            <i class="bi bi-pencil" style="font-size: 15px;"></i> Manage
+          </a>
+          <button onclick="deleteAlbum({{ album.id }}, '{{ album.name }}')"
+            class="inline-flex items-center justify-center w-11 h-11 rounded-lg transition-all hover:bg-red-900/30"
+            style="color: var(--isp-text-muted);" title="Delete">
+            <i class="bi bi-trash" style="font-size: 18px;"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="admin-card text-center py-24 rounded-lg">
+    <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(31,72,48,0.3);">
+      <i class="bi bi-collection" style="font-size: 40px; color: var(--isp-text-muted);"></i>
+    </div>
+    <p style="color: var(--isp-cream); font-size: 20px; font-family: var(--font-display);">No albums yet</p>
+    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 16px;">Click "New Album" to create one.</p>
+  </div>
+  {% endif %}
+
+  <!-- Create album modal -->
+  <div id="create-album-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
+    <div class="admin-modal w-full max-w-lg p-10">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">New Album</h2>
+          <p style="color: var(--isp-text-muted); font-size: 15px; margin-top: 4px;">Create a new photo collection</p>
+        </div>
+        <button onclick="document.getElementById('create-album-modal').style.display='none'" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
+          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        </button>
+      </div>
+      <form method="POST" action="/admin/albums/create">
+        <div class="mb-5">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Album Name</label>
+          <input type="text" name="name" required class="admin-input" placeholder="e.g. Mark & Dianne Wedding" />
+        </div>
+        <div class="mb-7">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Description (optional)</label>
+          <textarea name="description" rows="3" class="admin-input" placeholder="A short description of this album" style="resize: vertical;"></textarea>
+        </div>
+        <button type="submit" class="admin-btn w-full py-4" style="font-size: 16px;">
+          Create Album
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deleteAlbum(id, name) {
+  if (!confirm('Delete album "' + name + '"? Photos will remain in your library.')) return;
+  deleteRequest('/admin/albums/' + id).then(data => {
+    if (data.success) location.reload();
+    else alert(data.message);
+  });
+}
+</script>
+{% endblock %}

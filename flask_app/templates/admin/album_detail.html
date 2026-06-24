@@ -1,0 +1,365 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="admin-animate">
+
+  <!-- Breadcrumb -->
+  <div class="mb-6">
+    <a href="/admin/albums" style="color: var(--isp-text-muted); font-size: 15px;">
+      <i class="bi bi-arrow-left" style="font-size: 16px;"></i> Back to Albums
+    </a>
+  </div>
+
+  <!-- Album header -->
+  <div class="mb-10">
+    <div class="flex items-center gap-4 mb-3">
+      <div style="width: 36px; height: 1px; background-color: var(--isp-gold);"></div>
+      <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Album</span>
+    </div>
+    <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 48px; font-weight: 300; line-height: 1.1;">{{ album.name }}</h1>
+    {% if album.description %}
+    <p class="mt-3" style="color: var(--isp-text-muted); font-size: 17px; line-height: 1.5;">{{ album.description }}</p>
+    {% endif %}
+    <div class="flex items-center gap-5 mt-4">
+      <span class="inline-flex items-center gap-2" style="color: var(--isp-text-muted); font-size: 15px;">
+        <i class="bi bi-images" style="font-size: 17px;"></i> {{ album.photos|length }} photos
+      </span>
+      <span class="inline-flex items-center gap-2" style="color: var(--isp-text-muted); font-size: 15px;">
+        <i class="bi bi-people" style="font-size: 17px;"></i> {{ album.assignments|length }} clients
+      </span>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="flex items-center gap-3 mb-8">
+    <button onclick="document.getElementById('add-photos-modal').style.display='flex'"
+      class="admin-btn px-5 py-3 flex items-center gap-2" style="font-size: 14px;">
+      <i class="bi bi-plus-lg" style="font-size: 16px;"></i> Add from Library
+    </button>
+    <button onclick="openAssignAlbumModal()"
+      class="px-5 py-3 flex items-center gap-2 rounded-lg transition-all hover:border-isp-gold" style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold); font-size: 14px; font-weight: 500;">
+      <i class="bi bi-people" style="font-size: 16px;"></i> Assign to Clients
+    </button>
+  </div>
+
+  <!-- Drag & drop upload zone -->
+  <div id="drop-zone" class="mb-10 rounded-xl transition-all"
+    style="border: 2px dashed rgba(200,169,110,0.25); background-color: rgba(17,23,20,0.5); padding: 48px 24px; text-align: center; cursor: pointer;"
+    ondragover="handleDragOver(event)"
+    ondragleave="handleDragLeave(event)"
+    ondrop="handleDrop(event)"
+    onclick="document.getElementById('album-file-input').click()">
+    <div id="drop-zone-content">
+      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: rgba(31,72,48,0.4);">
+        <i class="bi bi-cloud-arrow-up" style="font-size: 32px; color: var(--isp-gold);"></i>
+      </div>
+      <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 22px; font-weight: 300;">Drag & drop photos here</p>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 15px;">or click to browse — JPG, PNG, WEBP</p>
+    </div>
+    <div id="drop-zone-active" style="display: none;">
+      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: rgba(200,169,110,0.2);">
+        <i class="bi bi-cloud-arrow-up-fill" style="font-size: 32px; color: var(--isp-gold);"></i>
+      </div>
+      <p style="font-family: var(--font-display); color: var(--isp-gold); font-size: 22px; font-weight: 300;">Drop to upload</p>
+      <p class="mt-2" style="color: var(--isp-cream); font-size: 15px;">Release files to add them to this album</p>
+    </div>
+    <input type="file" id="album-file-input" accept="image/jpeg,image/png,image/webp" multiple style="display: none;" onchange="handleFileSelect(event)" />
+  </div>
+
+  <!-- Upload progress -->
+  <div id="upload-progress" class="mb-8" style="display: none;">
+    <div class="admin-card p-6 rounded-lg">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center" style="border: 2px solid rgba(200,169,110,0.3); border-top-color: var(--isp-gold); animation: spin 0.8s linear infinite;"></div>
+        <span id="upload-status-text" style="color: var(--isp-cream); font-size: 16px;">Uploading...</span>
+      </div>
+      <div class="w-full rounded-full" style="background-color: rgba(31,72,48,0.3); height: 6px;">
+        <div id="upload-bar" style="background-color: var(--isp-gold); height: 6px; border-radius: 999px; width: 0%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Album photos -->
+  {% if album.photos %}
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+    {% for ap in album.photos %}
+    <div class="admin-card relative overflow-hidden rounded-lg group">
+      <div style="aspect-ratio: 1/1; overflow: hidden;">
+        <img src="{{ url_for('static', filename='uploads/' + ap.photo.filename) }}" alt="{{ ap.photo.original_name }}"
+          style="width: 100%; height: 100%; object-fit: cover;" />
+      </div>
+      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        style="background-color: rgba(8,12,9,0.75);">
+        <button onclick="removePhoto({{ album.id }}, {{ ap.photo.id }})"
+          class="px-4 py-2.5 uppercase tracking-wider transition-all hover:opacity-80 flex items-center gap-2"
+          style="background-color: rgba(220,38,38,0.85); color: white; font-size: 14px; font-weight: 500; border-radius: 4px;">
+          <i class="bi bi-trash" style="font-size: 16px;"></i> Remove
+        </button>
+      </div>
+      <div class="p-4">
+        <p class="truncate" style="color: var(--isp-cream); font-size: 15px; font-weight: 500;">{{ ap.photo.title or ap.photo.original_name }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="admin-card text-center py-20 rounded-lg mb-12">
+    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style="background-color: rgba(31,72,48,0.3);">
+      <i class="bi bi-images" style="font-size: 32px; color: var(--isp-text-muted);"></i>
+    </div>
+    <p style="color: var(--isp-cream); font-size: 18px; font-family: var(--font-display);">No photos in this album yet</p>
+    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 15px;">Click "Add Photos" to select from your library.</p>
+  </div>
+  {% endif %}
+
+  <!-- Assigned clients -->
+  <div>
+    <h2 class="mb-5" style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Assigned Clients</h2>
+    {% if album.assignments %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for aa in album.assignments %}
+      <div class="admin-card p-5 rounded-lg flex items-center gap-4">
+        <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 18px; font-weight: 600;">
+          {{ aa.client.name[0] if aa.client.name else '?' }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p style="color: var(--isp-cream); font-size: 16px; font-weight: 500;">{{ aa.client.name }}</p>
+          <p class="truncate" style="color: var(--isp-text-muted); font-size: 14px;">{{ aa.client.email }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="admin-card p-6 rounded-lg">
+      <p style="color: var(--isp-text-muted); font-size: 16px;">No clients assigned. Click "Assign to Clients" to share this album.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Add photos modal -->
+  <div id="add-photos-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
+    <div class="admin-modal w-full max-w-3xl p-10" style="max-height: 85vh; overflow-y: auto;">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Add Photos to Album</h2>
+          <p style="color: var(--isp-text-muted); font-size: 15px; margin-top: 4px;">Select photos from your library</p>
+        </div>
+        <button onclick="document.getElementById('add-photos-modal').style.display='none'" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
+          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        </button>
+      </div>
+      {% if all_photos %}
+      <div class="grid grid-cols-3 md:grid-cols-4 gap-3 mb-7">
+        {% for photo in all_photos %}
+        <label class="relative cursor-pointer rounded-lg overflow-hidden" style="aspect-ratio: 1/1; border: {% if photo.id in album_photo_ids %}2px solid var(--isp-gold){% else %}1px solid rgba(200,169,110,0.1){% endif %};">
+          <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+          <input type="checkbox" value="{{ photo.id }}" class="album-photo-checkbox absolute top-2 right-2" style="width: 22px; height: 22px; accent-color: var(--isp-gold);" {% if photo.id in album_photo_ids %}checked{% endif %} />
+        </label>
+        {% endfor %}
+      </div>
+      <button onclick="saveAlbumPhotos()" class="admin-btn w-full py-4" style="font-size: 16px;">
+        Save Photos
+      </button>
+      {% else %}
+      <p style="color: var(--isp-text-muted); font-size: 16px;">No photos in your library. Upload photos first.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Assign album modal -->
+  <div id="assign-album-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
+    <div class="admin-modal w-full max-w-lg p-10">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Assign to Clients</h2>
+          <p style="color: var(--isp-text-muted); font-size: 15px; margin-top: 4px;">Select which clients can see this album</p>
+        </div>
+        <button onclick="document.getElementById('assign-album-modal').style.display='none'" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
+          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        </button>
+      </div>
+      <div id="assign-album-list" class="space-y-3 mb-7 max-h-80 overflow-y-auto pr-1">
+        {% if all_clients %}
+          {% for c in all_clients %}
+          <label class="flex items-center gap-4 p-4 cursor-pointer rounded-lg transition-colors hover:bg-isp-green" style="border: 1px solid rgba(31,72,48,0.3);">
+            <input type="checkbox" value="{{ c.id }}" class="album-assign-checkbox" style="width: 20px; height: 20px; accent-color: var(--isp-gold);" {% if c.id in assigned_client_ids %}checked{% endif %} />
+            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 16px; font-weight: 600;">
+              {{ c.name[0] if c.name else '?' }}
+            </div>
+            <div class="flex flex-col leading-tight">
+              <span style="color: var(--isp-cream); font-size: 16px; font-weight: 500;">{{ c.name }}</span>
+              <span style="color: var(--isp-text-muted); font-size: 14px;">{{ c.email }}</span>
+            </div>
+          </label>
+          {% endfor %}
+        {% else %}
+          <p style="color: var(--isp-text-muted); font-size: 16px;">No clients available. Create a client first.</p>
+        {% endif %}
+      </div>
+      <button onclick="saveAlbumAssignments()" class="admin-btn w-full py-4" style="font-size: 16px;">
+        Save Assignments
+      </button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var albumId = {{ album.id }};
+
+// ---- Drag & drop upload ----
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('drop-zone').style.borderColor = 'var(--isp-gold)';
+  document.getElementById('drop-zone').style.backgroundColor = 'rgba(200,169,110,0.05)';
+  document.getElementById('drop-zone-content').style.display = 'none';
+  document.getElementById('drop-zone-active').style.display = 'block';
+}
+
+function handleDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('drop-zone').style.borderColor = 'rgba(200,169,110,0.25)';
+  document.getElementById('drop-zone').style.backgroundColor = 'rgba(17,23,20,0.5)';
+  document.getElementById('drop-zone-content').style.display = 'block';
+  document.getElementById('drop-zone-active').style.display = 'none';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  handleDragLeave(e);
+  var files = e.dataTransfer.files;
+  if (files.length > 0) {
+    uploadFiles(files);
+  }
+}
+
+function handleFileSelect(e) {
+  var files = e.target.files;
+  if (files.length > 0) {
+    uploadFiles(files);
+  }
+  e.target.value = '';
+}
+
+function uploadFiles(files) {
+  var formData = new FormData();
+  var validCount = 0;
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    var ext = f.name.split('.').pop().toLowerCase();
+    if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp') {
+      formData.append('files', f);
+      validCount++;
+    }
+  }
+
+  if (validCount === 0) {
+    alert('No valid image files. Supported: JPG, PNG, WEBP');
+    return;
+  }
+
+  document.getElementById('upload-progress').style.display = 'block';
+  document.getElementById('upload-status-text').textContent = 'Uploading ' + validCount + ' file' + (validCount > 1 ? 's' : '') + '...';
+  document.getElementById('upload-bar').style.width = '0%';
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/admin/albums/' + albumId + '/upload');
+
+  xhr.upload.onprogress = function(e) {
+    if (e.lengthComputable) {
+      var pct = Math.round((e.loaded / e.total) * 100);
+      document.getElementById('upload-bar').style.width = pct + '%';
+    }
+  };
+
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      var data = JSON.parse(xhr.responseText);
+      document.getElementById('upload-status-text').textContent = data.message;
+      setTimeout(function() { location.reload(); }, 800);
+    } else {
+      var data = JSON.parse(xhr.responseText);
+      document.getElementById('upload-status-text').textContent = data.message || 'Upload failed.';
+      setTimeout(function() {
+        document.getElementById('upload-progress').style.display = 'none';
+      }, 2000);
+    }
+  };
+
+  xhr.onerror = function() {
+    document.getElementById('upload-status-text').textContent = 'Upload failed. Please try again.';
+    setTimeout(function() {
+      document.getElementById('upload-progress').style.display = 'none';
+    }, 2000);
+  };
+
+  xhr.send(formData);
+}
+
+// ---- Library photo selection ----
+
+function saveAlbumPhotos() {
+  var photoIds = [];
+  document.querySelectorAll('.album-photo-checkbox:checked').forEach(function(cb) {
+    photoIds.push(parseInt(cb.value));
+  });
+
+  fetch('/admin/albums/' + albumId + '/photos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photo_ids: photoIds })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      document.getElementById('add-photos-modal').style.display = 'none';
+      location.reload();
+    } else {
+      alert(data.message);
+    }
+  });
+}
+
+function removePhoto(albumId, photoId) {
+  if (!confirm('Remove this photo from the album?')) return;
+  fetch('/admin/albums/' + albumId + '/photos/' + photoId, { method: 'DELETE' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) location.reload();
+      else alert(data.message);
+    });
+}
+
+function openAssignAlbumModal() {
+  document.getElementById('assign-album-modal').style.display = 'flex';
+}
+
+function saveAlbumAssignments() {
+  var clientIds = [];
+  document.querySelectorAll('.album-assign-checkbox:checked').forEach(function(cb) {
+    clientIds.push(parseInt(cb.value));
+  });
+
+  fetch('/admin/albums/' + albumId + '/assign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ client_ids: clientIds })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      document.getElementById('assign-album-modal').style.display = 'none';
+      location.reload();
+    } else {
+      alert(data.message);
+    }
+  });
+}
+</script>
+{% endblock %}

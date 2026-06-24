@@ -3,7 +3,7 @@ from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-from models import db, User, Photo, PhotoAssignment
+from models import db, User, Photo, PhotoAssignment, Album, AlbumPhoto, AlbumAssignment
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -210,3 +210,144 @@ def unassign_photo(photo_id, client_id):
 def get_assignments(photo_id):
     assignments = PhotoAssignment.query.filter_by(photo_id=photo_id).all()
     return jsonify({"client_ids": [a.client_id for a in assignments]})
+
+
+# ---- Album management ----
+
+@admin_bp.route("/albums")
+@admin_required
+def albums():
+    all_albums = Album.query.order_by(Album.created_at.desc()).all()
+    all_clients = User.query.filter_by(role="client").order_by(User.name).all()
+    return render_template("admin/albums.html", albums=all_albums, clients=all_clients)
+
+
+@admin_bp.route("/albums/create", methods=["POST"])
+@admin_required
+def create_album():
+    name = (request.form.get("name") or "").strip()
+    description = (request.form.get("description") or "").strip()
+
+    if not name:
+        flash("Album name is required.", "error")
+        return redirect(url_for("admin.albums"))
+
+    album = Album(name=name, description=description, created_by=current_user.id)
+    db.session.add(album)
+    db.session.commit()
+
+    flash(f"Album '{name}' created.", "success")
+    return redirect(url_for("admin.albums"))
+
+
+@admin_bp.route("/albums/<int:album_id>")
+@admin_required
+def album_detail(album_id):
+    album = Album.query.get_or_404(album_id)
+    all_photos = Photo.query.order_by(Photo.uploaded_at.desc()).all()
+    album_photo_ids = [ap.photo_id for ap in album.photos]
+    all_clients = User.query.filter_by(role="client").order_by(User.name).all()
+    assigned_client_ids = [a.client_id for a in album.assignments]
+    return render_template("admin/album_detail.html",
+                           album=album,
+                           all_photos=all_photos,
+                           album_photo_ids=album_photo_ids,
+                           all_clients=all_clients,
+                           assigned_client_ids=assigned_client_ids)
+
+
+@admin_bp.route("/albums/<int:album_id>/upload", methods=["POST"])
+@admin_required
+def upload_to_album(album_id):
+    album = Album.query.get_or_404(album_id)
+
+    if "files" not in request.files:
+        return jsonify({"success": False, "message": "No files selected."}), 400
+
+    files = request.files.getlist("files")
+    upload_dir = os.path.join(current_app.config["UPLOAD_FOLDER"])
+    os.makedirs(upload_dir, exist_ok=True)
+
+    uploaded = 0
+    for f in files:
+        if f and f.filename and allowed_file(f.filename):
+            original = secure_filename(f.filename)
+            import time
+            filename = f"{int(time.time())}_{uploaded}_{original}"
+            filepath = os.path.join(upload_dir, filename)
+            f.save(filepath)
+
+            photo = Photo(filename=filename, original_name=original, uploaded_by=current_user.id)
+            db.session.add(photo)
+            db.session.flush()
+
+            ap = AlbumPhoto(album_id=album.id, photo_id=photo.id)
+            db.session.add(ap)
+            uploaded += 1
+
+    if uploaded > 0:
+        db.session.commit()
+        return jsonify({"success": True, "message": f"{uploaded} photo(s) uploaded and added to album."})
+    else:
+        return jsonify({"success": False, "message": "No valid image files were uploaded."}), 400
+
+
+@admin_bp.route("/albums/<int:album_id>/photos", methods=["POST"])
+@admin_required
+def add_photos_to_album(album_id):
+    album = Album.query.get_or_404(album_id)
+    photo_ids = request.get_json(force=True).get("photo_ids", [])
+
+    added = 0
+    for pid in photo_ids:
+        existing = AlbumPhoto.query.filter_by(album_id=album.id, photo_id=pid).first()
+        if not existing:
+            ap = AlbumPhoto(album_id=album.id, photo_id=pid)
+            db.session.add(ap)
+            added += 1
+
+    db.session.commit()
+    return jsonify({"success": True, "message": f"{added} photo(s) added to album."})
+
+
+@admin_bp.route("/albums/<int:album_id>/photos/<int:photo_id>", methods=["DELETE"])
+@admin_required
+def remove_photo_from_album(album_id, photo_id):
+    ap = AlbumPhoto.query.filter_by(album_id=album_id, photo_id=photo_id).first()
+    if ap:
+        db.session.delete(ap)
+        db.session.commit()
+    return jsonify({"success": True, "message": "Photo removed from album."})
+
+
+@admin_bp.route("/albums/<int:album_id>/assign", methods=["POST"])
+@admin_required
+def assign_album(album_id):
+    album = Album.query.get_or_404(album_id)
+    data = request.get_json(force=True)
+    client_ids = data.get("client_ids", [])
+
+    AlbumAssignment.query.filter_by(album_id=album.id).delete()
+    for cid in client_ids:
+        aa = AlbumAssignment(album_id=album.id, client_id=cid)
+        db.session.add(aa)
+
+    db.session.commit()
+    return jsonify({"success": True, "message": f"Album assigned to {len(client_ids)} client(s)."})
+
+
+@admin_bp.route("/albums/<int:album_id>/assignments")
+@admin_required
+def get_album_assignments(album_id):
+    assignments = AlbumAssignment.query.filter_by(album_id=album_id).all()
+    return jsonify({"client_ids": [a.client_id for a in assignments]})
+
+
+@admin_bp.route("/albums/<int:album_id>", methods=["DELETE"])
+@admin_required
+def delete_album(album_id):
+    album = Album.query.get_or_404(album_id)
+    name = album.name
+    db.session.delete(album)
+    db.session.commit()
+    return jsonify({"success": True, "message": f"Album '{name}' deleted."})

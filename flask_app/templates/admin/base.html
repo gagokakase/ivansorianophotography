@@ -100,6 +100,9 @@
     .admin-animate {
       animation: fadeInUp 0.5s ease-out;
     }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body style="background-color: var(--isp-bg); font-family: var(--font-body); min-height: 100vh;">
@@ -141,6 +144,9 @@
         </a>
         <a href="/admin/photos" class="admin-nav-link" style="color: var(--isp-cream);">
           <i class="bi bi-images" style="font-size: 20px;"></i> Photos
+        </a>
+        <a href="/admin/albums" class="admin-nav-link" style="color: var(--isp-cream);">
+          <i class="bi bi-collection" style="font-size: 20px;"></i> Albums
         </a>
       </nav>
 
