@@ -69,6 +69,43 @@ def create_client():
     return redirect(url_for("admin.clients"))
 
 
+@admin_bp.route("/clients/<int:client_id>/edit", methods=["GET", "POST"])
+@admin_required
+def edit_client(client_id):
+    client = User.query.get_or_404(client_id)
+    if client.is_admin:
+        return jsonify({"success": False, "message": "Cannot edit admin account."}), 403
+
+    if request.method == "GET":
+        return jsonify({
+            "id": client.id,
+            "name": client.name,
+            "email": client.email
+        })
+
+    name = (request.form.get("name") or "").strip()
+    email = (request.form.get("email") or "").strip().lower()
+    password = request.form.get("password") or ""
+
+    if not name or not email:
+        flash("Name and email are required.", "error")
+        return redirect(url_for("admin.clients"))
+
+    existing = User.query.filter_by(email=email).first()
+    if existing and existing.id != client.id:
+        flash("An account with this email already exists.", "error")
+        return redirect(url_for("admin.clients"))
+
+    client.name = name
+    client.email = email
+    if password:
+        client.set_password(password)
+
+    db.session.commit()
+    flash(f"Client {name} updated successfully.", "success")
+    return redirect(url_for("admin.clients"))
+
+
 @admin_bp.route("/clients/<int:client_id>", methods=["DELETE"])
 @admin_required
 def delete_client(client_id):
