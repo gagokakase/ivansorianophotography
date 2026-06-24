@@ -34,6 +34,37 @@
             <p class="uppercase" style="font-family: var(--font-body); color: var(--isp-cream); font-size: 14px; letter-spacing: 0.2em;">Watch Showreel</p>
           </div>
         </div>
+
+        <!-- Custom controls bar -->
+        <div id="video-controls" class="absolute bottom-0 left-0 right-0 px-4 py-3 flex items-center gap-3 transition-opacity duration-300"
+          style="background: linear-gradient(to top, rgba(8,12,9,0.9) 0%, rgba(8,12,9,0.5) 70%, transparent 100%); opacity: 0; pointer-events: none;">
+          <!-- Play/Pause -->
+          <button id="video-play-btn" class="flex-shrink-0" style="color: var(--isp-cream); background: none; border: none; cursor: pointer;">
+            <i data-lucide="pause" id="video-play-icon" style="width: 20px; height: 20px;"></i>
+          </button>
+          <!-- Time -->
+          <span id="video-current" class="flex-shrink-0" style="font-family: var(--font-body); color: var(--isp-cream); font-size: 13px; min-width: 40px; text-align: center;">0:00</span>
+          <!-- Progress bar -->
+          <div id="video-progress-track" class="flex-1 relative cursor-pointer"
+            style="height: 4px; background-color: rgba(242,237,228,0.2); border-radius: 2px;">
+            <div id="video-progress-buffered" class="absolute top-0 left-0 h-full"
+              style="background-color: rgba(242,237,228,0.15); border-radius: 2px; width: 0%;"></div>
+            <div id="video-progress-fill" class="absolute top-0 left-0 h-full"
+              style="background-color: var(--isp-gold); border-radius: 2px; width: 0%;"></div>
+            <div id="video-progress-thumb" class="absolute top-1/2"
+              style="width: 12px; height: 12px; background-color: var(--isp-gold); border-radius: 50%; transform: translate(-50%, -50%); left: 0%; opacity: 0; transition: opacity 0.2s;"></div>
+          </div>
+          <!-- Duration -->
+          <span id="video-duration" class="flex-shrink-0" style="font-family: var(--font-body); color: var(--isp-cream); font-size: 13px; min-width: 40px; text-align: center;">0:00</span>
+          <!-- Mute -->
+          <button id="video-mute-btn" class="flex-shrink-0" style="color: var(--isp-cream); background: none; border: none; cursor: pointer;">
+            <i data-lucide="volume-2" id="video-mute-icon" style="width: 20px; height: 20px;"></i>
+          </button>
+          <!-- Fullscreen -->
+          <button id="video-fs-btn" class="flex-shrink-0" style="color: var(--isp-cream); background: none; border: none; cursor: pointer;">
+            <i data-lucide="maximize" style="width: 20px; height: 20px;"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>

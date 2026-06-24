@@ -268,6 +268,200 @@ function showToast(message) {
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 })();
 
+// ---- Video showcase ----
+(function () {
+  var video = document.getElementById("showcase-video");
+  var overlay = document.getElementById("video-overlay");
+  var controls = document.getElementById("video-controls");
+  if (!video || !overlay) return;
+
+  var playBtn = document.getElementById("video-play-btn");
+  var playIcon = document.getElementById("video-play-icon");
+  var muteBtn = document.getElementById("video-mute-btn");
+  var muteIcon = document.getElementById("video-mute-icon");
+  var fsBtn = document.getElementById("video-fs-btn");
+  var currentEl = document.getElementById("video-current");
+  var durationEl = document.getElementById("video-duration");
+  var track = document.getElementById("video-progress-track");
+  var fill = document.getElementById("video-progress-fill");
+  var buffered = document.getElementById("video-progress-buffered");
+  var thumb = document.getElementById("video-progress-thumb");
+
+  var container = video.parentElement;
+  var isDragging = false;
+  var controlsTimer = null;
+
+  function formatTime(s) {
+    if (isNaN(s)) return "0:00";
+    var m = Math.floor(s / 60);
+    var sec = Math.floor(s % 60);
+    return m + ":" + (sec < 10 ? "0" : "") + sec;
+  }
+
+  function updateProgress() {
+    if (video.duration) {
+      var pct = (video.currentTime / video.duration) * 100;
+      fill.style.width = pct + "%";
+      thumb.style.left = pct + "%";
+      currentEl.textContent = formatTime(video.currentTime);
+    }
+  }
+
+  function updateBuffered() {
+    if (video.buffered.length > 0 && video.duration) {
+      var end = video.buffered.end(video.buffered.length - 0);
+      buffered.style.width = (end / video.duration) * 100 + "%";
+    }
+  }
+
+  function seekFromEvent(e) {
+    var rect = track.getBoundingClientRect();
+    var x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+    var pct = Math.max(0, Math.min(1, x / rect.width));
+    if (video.duration) {
+      video.currentTime = pct * video.duration;
+      updateProgress();
+    }
+  }
+
+  function showControls() {
+    controls.style.opacity = "1";
+    controls.style.pointerEvents = "auto";
+    clearTimeout(controlsTimer);
+    if (!video.paused) {
+      controlsTimer = setTimeout(function () {
+        controls.style.opacity = "0";
+        controls.style.pointerEvents = "none";
+      }, 3000);
+    }
+  }
+
+  // Play overlay click
+  overlay.addEventListener("click", function () {
+    if (video.paused) {
+      video.play();
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      showControls();
+    }
+  });
+
+  // Play/Pause button
+  playBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+    }
+  });
+
+  // Video click to pause
+  video.addEventListener("click", function () {
+    if (!video.paused) {
+      video.pause();
+    } else {
+      video.play();
+    }
+  });
+
+  // Play/pause state
+  video.addEventListener("play", function () {
+    playIcon.setAttribute("data-lucide", "pause");
+    lucide.createIcons();
+    showControls();
+  });
+
+  video.addEventListener("pause", function () {
+    playIcon.setAttribute("data-lucide", "play");
+    lucide.createIcons();
+    showControls();
+  });
+
+  video.addEventListener("ended", function () {
+    overlay.style.opacity = "1";
+    overlay.style.pointerEvents = "auto";
+    controls.style.opacity = "0";
+    controls.style.pointerEvents = "none";
+  });
+
+  // Loaded metadata
+  video.addEventListener("loadedmetadata", function () {
+    durationEl.textContent = formatTime(video.duration);
+  });
+
+  // Time update
+  video.addEventListener("timeupdate", function () {
+    if (!isDragging) updateProgress();
+  });
+
+  // Progress (buffered)
+  video.addEventListener("progress", updateBuffered);
+
+  // Progress bar drag
+  track.addEventListener("mousedown", function (e) {
+    isDragging = true;
+    seekFromEvent(e);
+  });
+
+  document.addEventListener("mousemove", function (e) {
+    if (isDragging) seekFromEvent(e);
+  });
+
+  document.addEventListener("mouseup", function () {
+    isDragging = false;
+  });
+
+  // Touch support
+  track.addEventListener("touchstart", function (e) {
+    isDragging = true;
+    seekFromEvent(e);
+  }, { passive: true });
+
+  document.addEventListener("touchmove", function (e) {
+    if (isDragging) seekFromEvent(e);
+  }, { passive: true });
+
+  document.addEventListener("touchend", function () {
+    isDragging = false;
+  });
+
+  // Thumb visibility on hover
+  track.addEventListener("mouseenter", function () {
+    thumb.style.opacity = "1";
+  });
+  track.addEventListener("mouseleave", function () {
+    thumb.style.opacity = "0";
+  });
+
+  // Mute
+  muteBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    video.muted = !video.muted;
+    muteIcon.setAttribute("data-lucide", video.muted ? "volume-x" : "volume-2");
+    lucide.createIcons();
+  });
+
+  // Fullscreen
+  fsBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      container.requestFullscreen();
+    }
+  });
+
+  // Show controls on mouse move over video
+  container.addEventListener("mousemove", showControls);
+  container.addEventListener("mouseleave", function () {
+    if (!video.paused) {
+      controls.style.opacity = "0";
+      controls.style.pointerEvents = "none";
+    }
+  });
+})();
+
 // ---- Back to top button ----
 (function () {
   var btn = document.getElementById("back-to-top");
