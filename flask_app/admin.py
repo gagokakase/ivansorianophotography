@@ -42,10 +42,28 @@ def dashboard():
 @admin_required
 def profile():
     if request.method == "POST":
+        action = request.form.get("action") or "update_info"
         name = (request.form.get("name") or "").strip()
         email = (request.form.get("email") or "").strip().lower()
         password = request.form.get("password") or ""
+        current_password = request.form.get("current_password") or ""
 
+        if action == "change_password":
+            if not current_password:
+                flash("Current password is required.", "error")
+                return redirect(url_for("admin.profile"))
+            if not current_user.check_password(current_password):
+                flash("Current password is incorrect.", "error")
+                return redirect(url_for("admin.profile"))
+            if not password or len(password) < 6:
+                flash("New password must be at least 6 characters.", "error")
+                return redirect(url_for("admin.profile"))
+            current_user.set_password(password)
+            db.session.commit()
+            flash("Password updated successfully.", "success")
+            return redirect(url_for("admin.profile"))
+
+        # Default: update info
         if not name or not email:
             flash("Name and email are required.", "error")
             return redirect(url_for("admin.profile"))
@@ -57,14 +75,18 @@ def profile():
 
         current_user.name = name
         current_user.email = email
-        if password:
-            current_user.set_password(password)
-
         db.session.commit()
         flash("Profile updated successfully.", "success")
         return redirect(url_for("admin.profile"))
 
-    return render_template("admin/profile.html")
+    total_albums = Album.query.filter_by(created_by=current_user.id).count()
+    total_clients = User.query.filter_by(role="client").count()
+    total_photos = Photo.query.filter_by(uploaded_by=current_user.id).count()
+
+    return render_template("admin/profile.html",
+                           total_albums=total_albums,
+                           total_clients=total_clients,
+                           total_photos=total_photos)
 
 
 @admin_bp.route("/clients")

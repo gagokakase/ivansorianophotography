@@ -149,7 +149,7 @@
 
       <!-- User info -->
       <div class="px-6 py-5" style="border-top: 1px solid rgba(200,169,110,0.1);">
-        <div class="flex items-center gap-3 mb-4">
+        <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 16px; font-weight: 600;">
             {{ current_user.name[0] if current_user.name else 'A' }}
           </div>
@@ -158,9 +158,6 @@
             <span style="color: var(--isp-text-muted); font-size: 13px;">{{ current_user.email }}</span>
           </div>
         </div>
-        <a href="/logout" class="flex items-center justify-center gap-2 w-full py-3 rounded-lg transition-all hover:bg-red-900/30" style="color: #ef6b6b; font-size: 15px; font-weight: 500; border: 1px solid rgba(239,107,107,0.2);">
-          <i class="bi bi-box-arrow-right" style="font-size: 18px;"></i> Logout
-        </a>
       </div>
     </aside>
 
@@ -179,15 +176,26 @@
           </button>
           <span class="lg:hidden" style="font-family: var(--font-display); color: var(--isp-cream); font-size: 18px;">Admin Panel</span>
         </div>
-        <div class="flex items-center gap-3">
-          <a href="/admin/profile" class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-isp-green" style="color: var(--isp-cream); font-size: 14px; font-weight: 500; border: 1px solid rgba(200,169,110,0.15);">
-            <i class="bi bi-person-circle" style="font-size: 18px; color: var(--isp-gold);"></i>
-            <span class="hidden sm:inline">Profile</span>
-          </a>
-          <a href="/logout" class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-red-900/30" style="color: #ef6b6b; font-size: 14px; font-weight: 500; border: 1px solid rgba(239,107,107,0.2);">
-            <i class="bi bi-box-arrow-right" style="font-size: 18px;"></i>
-            <span class="hidden sm:inline">Logout</span>
-          </a>
+        <div class="relative">
+          <button onclick="toggleUserMenu()" class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all hover:bg-isp-green" style="border: 1px solid rgba(200,169,110,0.15);">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 14px; font-weight: 600;">
+              {{ current_user.name[0] if current_user.name else 'A' }}
+            </div>
+            <span class="hidden sm:inline" style="color: var(--isp-cream); font-size: 14px; font-weight: 500;">{{ current_user.name }}</span>
+            <i class="bi bi-chevron-down" style="font-size: 14px; color: var(--isp-text-muted);"></i>
+          </button>
+          <div id="user-dropdown" class="absolute right-0 top-full mt-2 w-56 rounded-lg overflow-hidden" style="display: none; background-color: var(--isp-bg-card); border: 1px solid rgba(200,169,110,0.15); box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+            <div class="px-4 py-3" style="border-bottom: 1px solid rgba(200,169,110,0.1);">
+              <p style="color: var(--isp-cream); font-size: 14px; font-weight: 500;">{{ current_user.name }}</p>
+              <p class="truncate" style="color: var(--isp-text-muted); font-size: 12px;">{{ current_user.email }}</p>
+            </div>
+            <a href="/admin/profile" class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-isp-green" style="color: var(--isp-cream); font-size: 14px;">
+              <i class="bi bi-person-circle" style="font-size: 18px; color: var(--isp-gold);"></i> Profile
+            </a>
+            <a href="/logout" class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-red-900/30" style="color: #ef6b6b; font-size: 14px; border-top: 1px solid rgba(200,169,110,0.08);">
+              <i class="bi bi-box-arrow-right" style="font-size: 18px;"></i> Logout
+            </a>
+          </div>
         </div>
       </header>
 
@@ -220,6 +228,18 @@
       sidebar.classList.toggle('-translate-x-full');
       overlay.style.display = sidebar.classList.contains('-translate-x-full') ? 'none' : 'block';
     }
+
+    function toggleUserMenu() {
+      var dropdown = document.getElementById('user-dropdown');
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+
+    document.addEventListener('click', function(e) {
+      var dropdown = document.getElementById('user-dropdown');
+      if (dropdown && dropdown.style.display === 'block' && !e.target.closest('#user-dropdown') && !e.target.closest('button[onclick="toggleUserMenu()"]')) {
+        dropdown.style.display = 'none';
+      }
+    });
 
     // Highlight active nav link
     (function() {
