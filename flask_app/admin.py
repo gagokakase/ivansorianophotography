@@ -38,6 +38,35 @@ def dashboard():
                            recent_photos=recent_photos)
 
 
+@admin_bp.route("/profile", methods=["GET", "POST"])
+@admin_required
+def profile():
+    if request.method == "POST":
+        name = (request.form.get("name") or "").strip()
+        email = (request.form.get("email") or "").strip().lower()
+        password = request.form.get("password") or ""
+
+        if not name or not email:
+            flash("Name and email are required.", "error")
+            return redirect(url_for("admin.profile"))
+
+        existing = User.query.filter_by(email=email).first()
+        if existing and existing.id != current_user.id:
+            flash("An account with this email already exists.", "error")
+            return redirect(url_for("admin.profile"))
+
+        current_user.name = name
+        current_user.email = email
+        if password:
+            current_user.set_password(password)
+
+        db.session.commit()
+        flash("Profile updated successfully.", "success")
+        return redirect(url_for("admin.profile"))
+
+    return render_template("admin/profile.html")
+
+
 @admin_bp.route("/clients")
 @admin_required
 def clients():
@@ -238,6 +267,32 @@ def create_album():
     return redirect(url_for("admin.albums"))
 
 
+@admin_bp.route("/albums/<int:album_id>/edit", methods=["GET", "POST"])
+@admin_required
+def edit_album(album_id):
+    album = Album.query.get_or_404(album_id)
+
+    if request.method == "GET":
+        return jsonify({
+            "id": album.id,
+            "name": album.name,
+            "description": album.description or ""
+        })
+
+    name = (request.form.get("name") or "").strip()
+    description = (request.form.get("description") or "").strip()
+
+    if not name:
+        flash("Album name is required.", "error")
+        return redirect(url_for("admin.albums"))
+
+    album.name = name
+    album.description = description
+    db.session.commit()
+    flash(f"Album '{name}' updated.", "success")
+    return redirect(url_for("admin.albums"))
+
+
 @admin_bp.route("/albums/<int:album_id>")
 @admin_required
 def album_detail(album_id):
@@ -352,6 +407,22 @@ def set_album_cover(album_id):
 
     db.session.commit()
     return jsonify({"success": True, "message": "Cover updated."})
+
+
+@admin_bp.route("/albums/<int:album_id>/reorder", methods=["POST"])
+@admin_required
+def reorder_photos(album_id):
+    album = Album.query.get_or_404(album_id)
+    data = request.get_json(force=True)
+    photo_ids = data.get("photo_ids", [])
+
+    for i, pid in enumerate(photo_ids):
+        ap = AlbumPhoto.query.filter_by(album_id=album.id, photo_id=pid).first()
+        if ap:
+            ap.order_index = i
+
+    db.session.commit()
+    return jsonify({"success": True, "message": "Photo order updated."})
 
 
 @admin_bp.route("/albums/<int:album_id>/assign", methods=["POST"])

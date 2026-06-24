@@ -71,7 +71,7 @@ class Album(db.Model):
     creator = db.relationship("User", foreign_keys=[created_by])
     cover_photo = db.relationship("Photo", foreign_keys=[cover_photo_id])
     cover_photos = db.relationship("AlbumCoverPhoto", backref="album", cascade="all, delete-orphan", order_by="AlbumCoverPhoto.position")
-    photos = db.relationship("AlbumPhoto", backref="album", cascade="all, delete-orphan", order_by="AlbumPhoto.added_at.desc()")
+    photos = db.relationship("AlbumPhoto", backref="album", cascade="all, delete-orphan", order_by="AlbumPhoto.order_index, AlbumPhoto.added_at.desc()")
     assignments = db.relationship("AlbumAssignment", backref="album", cascade="all, delete-orphan")
 
 
@@ -82,6 +82,7 @@ class AlbumPhoto(db.Model):
     album_id = db.Column(db.Integer, db.ForeignKey("albums.id"), nullable=False)
     photo_id = db.Column(db.Integer, db.ForeignKey("photos.id"), nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    order_index = db.Column(db.Integer, default=0)
 
     photo = db.relationship("Photo")
 

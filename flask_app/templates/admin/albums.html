@@ -19,11 +19,19 @@
     </button>
   </div>
 
+  <!-- Search bar -->
+  <div class="mb-6">
+    <div class="relative">
+      <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2" style="font-size: 18px; color: var(--isp-text-muted);"></i>
+      <input type="text" id="album-search" oninput="filterAlbums()" class="admin-input pl-12" placeholder="Search albums by name..." style="padding-left: 48px;" />
+    </div>
+  </div>
+
   <!-- Albums grid -->
   {% if albums %}
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div id="albums-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for album in albums %}
-    <div class="admin-card rounded-lg overflow-hidden">
+    <div class="admin-card rounded-lg overflow-hidden album-card" data-album-name="{{ album.name|lower }}">
       <!-- Cover preview -->
       <a href="/admin/albums/{{ album.id }}" class="block">
         {% if album.cover_layout == 'single' and album.cover_photo %}
@@ -141,6 +149,11 @@
           <a href="/admin/albums/{{ album.id }}" class="flex-1 text-center py-2.5 rounded-lg transition-all" style="background-color: rgba(31,72,48,0.3); color: var(--isp-cream); font-size: 14px; font-weight: 500;">
             <i class="bi bi-pencil" style="font-size: 15px;"></i> Manage
           </a>
+          <button onclick="openEditAlbumModal({{ album.id }})"
+            class="inline-flex items-center justify-center w-11 h-11 rounded-lg transition-all hover:bg-isp-green"
+            style="color: var(--isp-text-muted);" title="Edit">
+            <i class="bi bi-gear" style="font-size: 18px;"></i>
+          </button>
           <button onclick="deleteAlbum({{ album.id }}, '{{ album.name }}')"
             class="inline-flex items-center justify-center w-11 h-11 rounded-lg transition-all hover:bg-red-900/30"
             style="color: var(--isp-text-muted);" title="Delete">
@@ -160,6 +173,34 @@
     <p class="mt-2" style="color: var(--isp-text-muted); font-size: 16px;">Click "New Album" to create one.</p>
   </div>
   {% endif %}
+
+  <!-- Edit album modal -->
+  <div id="edit-album-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
+    <div class="admin-modal w-full max-w-lg p-10">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Edit Album</h2>
+          <p style="color: var(--isp-text-muted); font-size: 15px; margin-top: 4px;">Update album details</p>
+        </div>
+        <button onclick="document.getElementById('edit-album-modal').style.display='none'" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
+          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        </button>
+      </div>
+      <form method="POST" action="" id="edit-album-form">
+        <div class="mb-5">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Album Name</label>
+          <input type="text" name="name" id="edit-album-name" required class="admin-input" placeholder="Album name" />
+        </div>
+        <div class="mb-7">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Description (optional)</label>
+          <textarea name="description" id="edit-album-desc" rows="3" class="admin-input" placeholder="A short description" style="resize: vertical;"></textarea>
+        </div>
+        <button type="submit" class="admin-btn w-full py-4" style="font-size: 16px;">
+          Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- Create album modal -->
   <div id="create-album-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
@@ -199,6 +240,25 @@ function deleteAlbum(id, name) {
   deleteRequest('/admin/albums/' + id).then(data => {
     if (data.success) location.reload();
     else alert(data.message);
+  });
+}
+
+function openEditAlbumModal(id) {
+  fetch('/admin/albums/' + id + '/edit')
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('edit-album-name').value = data.name;
+      document.getElementById('edit-album-desc').value = data.description;
+      document.getElementById('edit-album-form').action = '/admin/albums/' + data.id + '/edit';
+      document.getElementById('edit-album-modal').style.display = 'flex';
+    });
+}
+
+function filterAlbums() {
+  var query = document.getElementById('album-search').value.toLowerCase();
+  document.querySelectorAll('.album-card').forEach(function(card) {
+    var name = card.dataset.albumName || '';
+    card.style.display = name.includes(query) ? '' : 'none';
   });
 }
 </script>

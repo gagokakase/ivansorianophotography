@@ -170,16 +170,25 @@
     <!-- Main content -->
     <div class="flex-1 min-w-0">
 
-      <!-- Mobile top bar -->
-      <header class="lg:hidden sticky top-0 z-30 flex items-center justify-between px-5 py-4"
+      <!-- Top nav bar -->
+      <header class="sticky top-0 z-30 flex items-center justify-between px-5 py-4"
         style="background-color: rgba(8,12,9,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(200,169,110,0.15);">
-        <button onclick="toggleSidebar()" style="color: var(--isp-cream);">
-          <i class="bi bi-list" style="font-size: 26px;"></i>
-        </button>
-        <span style="font-family: var(--font-display); color: var(--isp-cream); font-size: 18px;">Admin Panel</span>
-        <a href="/logout" style="color: #ef6b6b;">
-          <i class="bi bi-box-arrow-right" style="font-size: 22px;"></i>
-        </a>
+        <div class="flex items-center gap-4">
+          <button onclick="toggleSidebar()" class="lg:hidden" style="color: var(--isp-cream);">
+            <i class="bi bi-list" style="font-size: 26px;"></i>
+          </button>
+          <span class="lg:hidden" style="font-family: var(--font-display); color: var(--isp-cream); font-size: 18px;">Admin Panel</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/admin/profile" class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-isp-green" style="color: var(--isp-cream); font-size: 14px; font-weight: 500; border: 1px solid rgba(200,169,110,0.15);">
+            <i class="bi bi-person-circle" style="font-size: 18px; color: var(--isp-gold);"></i>
+            <span class="hidden sm:inline">Profile</span>
+          </a>
+          <a href="/logout" class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:bg-red-900/30" style="color: #ef6b6b; font-size: 14px; font-weight: 500; border: 1px solid rgba(239,107,107,0.2);">
+            <i class="bi bi-box-arrow-right" style="font-size: 18px;"></i>
+            <span class="hidden sm:inline">Logout</span>
+          </a>
+        </div>
       </header>
 
       <!-- Flash messages -->

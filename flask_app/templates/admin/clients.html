@@ -19,6 +19,14 @@
     </button>
   </div>
 
+  <!-- Search bar -->
+  <div class="mb-6">
+    <div class="relative">
+      <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2" style="font-size: 18px; color: var(--isp-text-muted);"></i>
+      <input type="text" id="client-search" oninput="filterClients()" class="admin-input" placeholder="Search clients by name or email..." style="padding-left: 48px;" />
+    </div>
+  </div>
+
   <!-- Clients table -->
   {% if clients %}
   <div class="admin-card overflow-x-auto">
@@ -34,7 +42,7 @@
       </thead>
       <tbody>
         {% for c in clients %}
-        <tr style="border-bottom: 1px solid rgba(31,72,48,0.2); transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='rgba(31,72,48,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+        <tr style="border-bottom: 1px solid rgba(31,72,48,0.2); transition: background-color 0.2s ease;" data-client-name="{{ c.name|lower }} {{ c.email|lower }}" onmouseover="this.style.backgroundColor='rgba(31,72,48,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
           <td class="px-8 py-5">
             <div class="flex items-center gap-4">
               <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 18px; font-weight: 600;">
@@ -168,6 +176,14 @@ function openEditModal(id) {
       document.getElementById('edit-form').action = '/admin/clients/' + data.id + '/edit';
       document.getElementById('edit-modal').style.display = 'flex';
     });
+}
+
+function filterClients() {
+  var query = document.getElementById('client-search').value.toLowerCase();
+  document.querySelectorAll('tbody tr[data-client-name]').forEach(function(row) {
+    var name = row.dataset.clientName || '';
+    row.style.display = name.includes(query) ? '' : 'none';
+  });
 }
 </script>
 {% endblock %}

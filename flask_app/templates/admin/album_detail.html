@@ -81,9 +81,9 @@
 
   <!-- Album photos -->
   {% if album.photos %}
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+  <div id="album-photos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
     {% for ap in album.photos %}
-    <div class="admin-card relative overflow-hidden rounded-lg group">
+    <div class="admin-card relative overflow-hidden rounded-lg group album-photo-card" draggable="true" data-photo-id="{{ ap.photo.id }}" style="cursor: grab;">
       {% if album.cover_photo_id == ap.photo.id %}
       <div class="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full flex items-center gap-1.5" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 12px; font-weight: 600; letter-spacing: 0.05em;">
         <i class="bi bi-star-fill" style="font-size: 13px;"></i> Cover
@@ -231,10 +231,15 @@
             <p id="slot-info" style="color: var(--isp-text-muted); font-size: 12px; margin-top: 2px;">Click photos to fill slots</p>
           </div>
           <div id="cover-photo-picker" class="flex-1 overflow-y-auto p-4 space-y-2">
+            <div class="relative mb-3">
+              <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2" style="font-size: 14px; color: var(--isp-text-muted);"></i>
+              <input type="text" id="cover-photo-search" oninput="filterCoverPhotos()" class="admin-input" placeholder="Search photos..." style="padding-left: 36px; font-size: 13px; padding-top: 8px; padding-bottom: 8px;" />
+            </div>
             {% for ap in album.photos %}
             <div class="cover-pick-item flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all" 
               data-photo-id="{{ ap.photo.id }}" 
               data-photo-src="{{ url_for('static', filename='uploads/' + ap.photo.filename) }}"
+              data-photo-name="{{ (ap.photo.title or ap.photo.original_name)|lower }}"
               onclick="toggleCoverPhoto({{ ap.photo.id }}, '{{ url_for('static', filename='uploads/' + ap.photo.filename) }}')"
               style="border: 1px solid transparent;">
               <div style="width: 48px; height: 48px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
@@ -924,5 +929,76 @@ function saveAlbumAssignments() {
     }
   });
 }
+
+function filterCoverPhotos() {
+  var query = document.getElementById('cover-photo-search').value.toLowerCase();
+  document.querySelectorAll('.cover-pick-item').forEach(function(item) {
+    var name = item.dataset.photoName || '';
+    item.style.display = name.includes(query) ? '' : 'none';
+  });
+}
+
+// ---- Photo reordering (drag & drop) ----
+
+var draggedPhotoId = null;
+
+function initPhotoReorder() {
+  var cards = document.querySelectorAll('.album-photo-card');
+  cards.forEach(function(card) {
+    card.addEventListener('dragstart', function(e) {
+      draggedPhotoId = this.dataset.photoId;
+      this.style.opacity = '0.4';
+    });
+    card.addEventListener('dragend', function(e) {
+      this.style.opacity = '1';
+    });
+    card.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.style.border = '2px solid var(--isp-gold)';
+    });
+    card.addEventListener('dragleave', function(e) {
+      this.style.border = '';
+    });
+    card.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.style.border = '';
+      var targetId = this.dataset.photoId;
+      if (draggedPhotoId && targetId && draggedPhotoId !== targetId) {
+        reorderPhotos(draggedPhotoId, targetId);
+      }
+    });
+  });
+}
+
+function reorderPhotos(draggedId, targetId) {
+  var grid = document.getElementById('album-photos-grid');
+  var cards = Array.from(grid.querySelectorAll('.album-photo-card'));
+  var draggedEl = cards.find(function(c) { return c.dataset.photoId === draggedId; });
+  var targetEl = cards.find(function(c) { return c.dataset.photoId === targetId; });
+  if (!draggedEl || !targetEl) return;
+
+  var draggedIdx = cards.indexOf(draggedEl);
+  var targetIdx = cards.indexOf(targetEl);
+
+  if (draggedIdx < targetIdx) {
+    grid.insertBefore(draggedEl, targetEl.nextSibling);
+  } else {
+    grid.insertBefore(draggedEl, targetEl);
+  }
+
+  var photoIds = Array.from(grid.querySelectorAll('.album-photo-card')).map(function(c) {
+    return parseInt(c.dataset.photoId);
+  });
+
+  fetch('/admin/albums/' + albumId + '/reorder', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photo_ids: photoIds })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success) alert(data.message);
+  });
+}
+
+initPhotoReorder();
 </script>
 {% endblock %}
