@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, abort, redirect, url_for, request, flash
+from flask import Blueprint, render_template, abort, redirect, url_for, request, flash, send_from_directory, current_app
 from flask_login import login_required, current_user
-from models import db, Album, AlbumAssignment, PhotoAssignment, User
+from models import db, Album, AlbumAssignment, PhotoAssignment, User, Photo
 from utils import sanitize_text, sanitize_password, validate_email, MAX_NAME_LENGTH
+import os
 
 client_bp = Blueprint("client", __name__, url_prefix="/client")
 
@@ -102,3 +103,36 @@ def view_photo(photo_id):
         abort(403)
 
     return render_template("client/view_photo.html", photo=assignment.photo)
+
+
+@client_bp.route("/download/<int:photo_id>")
+@login_required
+def download_photo(photo_id):
+    if current_user.is_admin:
+        return redirect(url_for("admin.dashboard"))
+
+    photo = Photo.query.get_or_404(photo_id)
+
+    assignment = PhotoAssignment.query.filter_by(photo_id=photo_id, client_id=current_user.id).first()
+    if not assignment:
+        album_assignment = AlbumAssignment.query.filter_by(client_id=current_user.id).first()
+        if not album_assignment:
+            abort(403)
+
+    upload_dir = current_app.config["UPLOAD_FOLDER"]
+    originals_dir = os.path.join(upload_dir, "originals")
+
+    # Try to find the original file by matching the webp base name with any extension
+    base_name = os.path.splitext(photo.filename)[0]
+    original_filename = None
+    if os.path.exists(originals_dir):
+        for f in os.listdir(originals_dir):
+            if os.path.splitext(f)[0] == base_name:
+                original_filename = f
+                break
+
+    if original_filename:
+        return send_from_directory(originals_dir, original_filename, as_attachment=True, download_name=photo.original_name)
+
+    # Fallback: serve the WebP if no original exists
+    return send_from_directory(upload_dir, photo.filename, as_attachment=True, download_name=photo.original_name)
