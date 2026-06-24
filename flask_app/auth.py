@@ -194,6 +194,7 @@ def facebook_callback():
 @auth_bp.route("/auth/google")
 def google_login():
     redirect_uri = url_for("auth.google_callback", _external=True, _scheme="https")
+    print(f"DEBUG Google redirect_uri: {redirect_uri}", flush=True)
     state = secrets.token_urlsafe(16)
     client_id = current_app.config["GOOGLE_CLIENT_ID"]
     auth_url = (
