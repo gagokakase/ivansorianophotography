@@ -122,7 +122,7 @@ def facebook_login():
         f"https://www.facebook.com/v18.0/dialog/oauth"
         f"?client_id={fb_app_id}"
         f"&redirect_uri={redirect_uri}"
-        f"&scope=email"
+        f"&scope=public_profile"
         f"&state={state}"
     )
     resp = redirect(auth_url)
@@ -164,6 +164,10 @@ def facebook_callback():
 
     email = (info.get("email") or "").strip().lower()
     name = info.get("name", "")
+    fb_id = info.get("id", "")
+
+    if not email and fb_id:
+        email = f"fb_{fb_id}@facebook.local"
 
     if not email:
         flash("Facebook did not return an email. Please use a different method to register.", "error")
