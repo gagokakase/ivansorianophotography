@@ -28,6 +28,9 @@ app.config["SESSION_COOKIE_DURATION"] = timedelta(minutes=30)
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(minutes=30)
 app.config["WTF_CSRF_TIME_LIMIT"] = 3600
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["PREFERRED_URL_SCHEME"] = "https"
+if os.environ.get("RAILWAY_PUBLIC_DOMAIN"):
+    app.config["SERVER_NAME"] = os.environ["RAILWAY_PUBLIC_DOMAIN"]
 
 # OAuth credentials from environment
 app.config["FB_APP_ID"] = os.environ.get("FB_APP_ID", "")

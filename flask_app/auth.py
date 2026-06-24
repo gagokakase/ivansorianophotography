@@ -116,6 +116,7 @@ def register():
 @auth_bp.route("/auth/facebook")
 def facebook_login():
     redirect_uri = url_for("auth.facebook_callback", _external=True, _scheme="https")
+    print(f"DEBUG Facebook redirect_uri: {redirect_uri}", flush=True)
     state = secrets.token_urlsafe(16)
     fb_app_id = current_app.config["FB_APP_ID"]
     auth_url = (
