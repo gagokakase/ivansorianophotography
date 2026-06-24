@@ -14,7 +14,7 @@
   </div>
 
   <!-- Stats -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="admin-card p-8">
       <div class="flex items-center justify-between mb-4">
         <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background-color: rgba(31,72,48,0.4);">
@@ -45,6 +45,59 @@
       <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 56px; font-weight: 300; line-height: 1;">{{ total_assignments }}</p>
       <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">Album-to-client links</p>
     </div>
+  </div>
+
+  <!-- Storage progress -->
+  <div class="admin-card p-8 mb-12">
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background-color: rgba(31,72,48,0.4);">
+          <i class="bi bi-hdd-stack-fill" style="font-size: 28px; color: var(--isp-gold);"></i>
+        </div>
+        <div>
+          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 24px;">Storage Usage</p>
+          <p style="color: var(--isp-text-muted); font-size: 14px;">{{ total_photos }} photos &middot; {{ storage_used }} of {{ storage_limit }} used</p>
+        </div>
+      </div>
+      <span class="text-2xl font-light" style="font-family: var(--font-display); color: {{ '#ef6b6b' if storage_pct >= 90 else ('var(--isp-gold)' if storage_pct >= 70 else 'var(--isp-cream)') }};">{{ storage_pct }}%</span>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="relative w-full" style="height: 10px; background-color: rgba(242,237,228,0.08); border-radius: 5px; overflow: hidden;">
+      <div style="height: 100%; width: {{ storage_pct }}%; border-radius: 5px; transition: width 0.6s ease;
+        background: {% if storage_pct >= 90 %}linear-gradient(90deg, #ef6b6b, #dc2626){% elif storage_pct >= 70 %}linear-gradient(90deg, var(--isp-gold), #B8945A){% else %}linear-gradient(90deg, var(--isp-green-light), var(--isp-green)){% endif %};">
+      </div>
+    </div>
+
+    <!-- Breakdown -->
+    <div class="grid grid-cols-2 gap-4 mt-5">
+      <div class="flex items-center gap-3">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background-color: var(--isp-green-light);"></div>
+        <div>
+          <p style="color: var(--isp-cream); font-size: 15px; font-weight: 500;">Optimized (WebP)</p>
+          <p style="color: var(--isp-text-muted); font-size: 13px;">{{ storage_optimized }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background-color: var(--isp-gold);"></div>
+        <div>
+          <p style="color: var(--isp-cream); font-size: 15px; font-weight: 500;">Originals (Backup)</p>
+          <p style="color: var(--isp-text-muted); font-size: 13px;">{{ storage_originals }}</p>
+        </div>
+      </div>
+    </div>
+
+    {% if storage_pct >= 80 %}
+    <div class="mt-5 px-4 py-3 flex items-center gap-3 rounded-lg" style="background-color: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25);">
+      <i class="bi bi-exclamation-triangle-fill" style="font-size: 18px; color: #ef6b6b;"></i>
+      <p style="color: #f87171; font-size: 14px;">Storage is almost full. Consider deleting unused photos or originals backup.</p>
+    </div>
+    {% elif storage_pct >= 60 %}
+    <div class="mt-5 px-4 py-3 flex items-center gap-3 rounded-lg" style="background-color: rgba(200,169,110,0.1); border: 1px solid rgba(200,169,110,0.25);">
+      <i class="bi bi-info-circle-fill" style="font-size: 18px; color: var(--isp-gold);"></i>
+      <p style="color: var(--isp-gold); font-size: 14px;">Storage usage is above 60%. Monitor your uploads.</p>
+    </div>
+    {% endif %}
   </div>
 
   <!-- Quick actions -->

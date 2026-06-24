@@ -32,12 +32,51 @@ def dashboard():
     total_clients = User.query.filter_by(role="client").count()
     total_albums = Album.query.count()
     total_assignments = AlbumAssignment.query.count()
+    total_photos = Photo.query.count()
     recent_photos = Photo.query.order_by(Photo.uploaded_at.desc()).limit(6).all()
+
+    # Calculate storage usage
+    upload_dir = current_app.config["UPLOAD_FOLDER"]
+    originals_dir = os.path.join(upload_dir, "originals")
+    storage_limit = 500 * 1024 * 1024  # 500 MB limit
+
+    optimized_size = 0
+    originals_size = 0
+
+    if os.path.exists(upload_dir):
+        for f in os.listdir(upload_dir):
+            fp = os.path.join(upload_dir, f)
+            if os.path.isfile(fp):
+                optimized_size += os.path.getsize(fp)
+
+    if os.path.exists(originals_dir):
+        for f in os.listdir(originals_dir):
+            fp = os.path.join(originals_dir, f)
+            if os.path.isfile(fp):
+                originals_size += os.path.getsize(fp)
+
+    total_storage = optimized_size + originals_size
+    storage_pct = min(100, (total_storage / storage_limit * 100)) if storage_limit > 0 else 0
+
+    def fmt_size(bytes):
+        if bytes < 1024:
+            return f"{bytes} B"
+        elif bytes < 1024 * 1024:
+            return f"{bytes / 1024:.1f} KB"
+        else:
+            return f"{bytes / (1024 * 1024):.1f} MB"
+
     return render_template("admin/dashboard.html",
                            total_clients=total_clients,
                            total_albums=total_albums,
                            total_assignments=total_assignments,
-                           recent_photos=recent_photos)
+                           total_photos=total_photos,
+                           recent_photos=recent_photos,
+                           storage_used=fmt_size(total_storage),
+                           storage_optimized=fmt_size(optimized_size),
+                           storage_originals=fmt_size(originals_size),
+                           storage_limit=fmt_size(storage_limit),
+                           storage_pct=round(storage_pct, 1))
 
 
 @admin_bp.route("/profile", methods=["GET", "POST"])
