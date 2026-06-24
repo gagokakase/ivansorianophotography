@@ -2,9 +2,12 @@ import json
 import os
 import re
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "isp-secret-key-change-in-production")
@@ -15,6 +18,13 @@ app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 app.config["SESSION_COOKIE_DURATION"] = timedelta(minutes=30)
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(minutes=30)
 app.config["WTF_CSRF_TIME_LIMIT"] = 3600
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# OAuth credentials from environment
+app.config["FB_APP_ID"] = os.environ.get("FB_APP_ID", "")
+app.config["FB_APP_SECRET"] = os.environ.get("FB_APP_SECRET", "")
+app.config["GOOGLE_CLIENT_ID"] = os.environ.get("GOOGLE_CLIENT_ID", "")
+app.config["GOOGLE_CLIENT_SECRET"] = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
 csrf = CSRFProtect(app)
 
@@ -41,6 +51,12 @@ from client import client_bp
 app.register_blueprint(auth_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(client_bp)
+
+# Exempt OAuth callback routes from CSRF
+csrf.exempt(app.view_functions["auth.facebook_login"])
+csrf.exempt(app.view_functions["auth.facebook_callback"])
+csrf.exempt(app.view_functions["auth.google_login"])
+csrf.exempt(app.view_functions["auth.google_callback"])
 
 
 # Ensure upload directory exists

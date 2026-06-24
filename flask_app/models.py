@@ -11,12 +11,13 @@ class User(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=True)
     role = db.Column(db.String(20), nullable=False, default="client")  # 'admin' or 'client'
     name = db.Column(db.String(100), nullable=False, default="")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     failed_login_count = db.Column(db.Integer, default=0)
     locked_until = db.Column(db.DateTime, nullable=True)
+    oauth_provider = db.Column(db.String(20), nullable=True)  # 'facebook', 'google', or None
 
     assignments = db.relationship("PhotoAssignment", backref="client", foreign_keys="PhotoAssignment.client_id", cascade="all, delete-orphan")
 

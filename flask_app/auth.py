@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+import secrets
+import requests
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, AdminLog
 from utils import sanitize_text, sanitize_password, validate_email, MAX_NAME_LENGTH
@@ -107,6 +109,156 @@ def register():
         return redirect(url_for("client.gallery"))
 
     return render_template("register.html")
+
+
+# ---- OAuth: Facebook ----
+
+@auth_bp.route("/auth/facebook")
+def facebook_login():
+    redirect_uri = "http://localhost:5000/auth/facebook/callback"
+    state = secrets.token_urlsafe(16)
+    fb_app_id = current_app.config["FB_APP_ID"]
+    auth_url = (
+        f"https://www.facebook.com/v18.0/dialog/oauth"
+        f"?client_id={fb_app_id}"
+        f"&redirect_uri={redirect_uri}"
+        f"&scope=email"
+        f"&state={state}"
+    )
+    resp = redirect(auth_url)
+    resp.set_cookie("oauth_state", state, httponly=True, samesite="Lax", max_age=600)
+    return resp
+
+
+@auth_bp.route("/auth/facebook/callback")
+def facebook_callback():
+    code = request.args.get("code")
+    if not code:
+        flash("Facebook authorization failed.", "error")
+        return redirect(url_for("auth.register"))
+
+    redirect_uri = "http://localhost:5000/auth/facebook/callback"
+    fb_app_id = current_app.config["FB_APP_ID"]
+    fb_app_secret = current_app.config["FB_APP_SECRET"]
+
+    token_resp = requests.get(
+        "https://graph.facebook.com/v18.0/oauth/access_token",
+        params={
+            "client_id": fb_app_id,
+            "client_secret": fb_app_secret,
+            "redirect_uri": redirect_uri,
+            "code": code,
+        },
+    )
+    token_data = token_resp.json()
+    access_token = token_data.get("access_token")
+    if not access_token:
+        flash("Failed to get access token from Facebook.", "error")
+        return redirect(url_for("auth.register"))
+
+    user_resp = requests.get(
+        "https://graph.facebook.com/me",
+        params={"fields": "name,email", "access_token": access_token},
+    )
+    info = user_resp.json()
+
+    email = (info.get("email") or "").strip().lower()
+    name = info.get("name", "")
+
+    if not email:
+        flash("Facebook did not return an email. Please use a different method to register.", "error")
+        return redirect(url_for("auth.register"))
+
+    user = User.query.filter_by(email=email).first()
+    if user:
+        login_user(user, duration=SESSION_DURATION)
+        log_action(user.id, "login_success", "via Facebook")
+        if user.is_admin:
+            return redirect(url_for("admin.dashboard"))
+        return redirect(url_for("client.gallery"))
+
+    user = User(name=name, email=email, role="client", oauth_provider="facebook")
+    db.session.add(user)
+    db.session.commit()
+    log_action(user.id, "oauth_register", "via Facebook")
+    login_user(user, duration=SESSION_DURATION)
+    return redirect(url_for("client.gallery"))
+
+
+# ---- OAuth: Google ----
+
+@auth_bp.route("/auth/google")
+def google_login():
+    redirect_uri = "http://localhost:5000/auth/google/callback"
+    state = secrets.token_urlsafe(16)
+    client_id = current_app.config["GOOGLE_CLIENT_ID"]
+    auth_url = (
+        f"https://accounts.google.com/o/oauth2/v2/auth"
+        f"?client_id={client_id}"
+        f"&redirect_uri={redirect_uri}"
+        f"&response_type=code"
+        f"&scope=openid email profile"
+        f"&state={state}"
+    )
+    resp = redirect(auth_url)
+    resp.set_cookie("oauth_state", state, httponly=True, samesite="Lax", max_age=600)
+    return resp
+
+
+@auth_bp.route("/auth/google/callback")
+def google_callback():
+    code = request.args.get("code")
+    if not code:
+        flash("Google authorization failed.", "error")
+        return redirect(url_for("auth.register"))
+
+    redirect_uri = "http://localhost:5000/auth/google/callback"
+    client_id = current_app.config["GOOGLE_CLIENT_ID"]
+    client_secret = current_app.config["GOOGLE_CLIENT_SECRET"]
+
+    token_resp = requests.post(
+        "https://oauth2.googleapis.com/token",
+        data={
+            "code": code,
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code",
+        },
+    )
+    token_data = token_resp.json()
+    access_token = token_data.get("access_token")
+    if not access_token:
+        flash("Failed to get access token from Google.", "error")
+        return redirect(url_for("auth.register"))
+
+    user_resp = requests.get(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    info = user_resp.json()
+
+    email = (info.get("email") or "").strip().lower()
+    name = info.get("name", "")
+
+    if not email:
+        flash("Google did not return an email. Please use a different method to register.", "error")
+        return redirect(url_for("auth.register"))
+
+    user = User.query.filter_by(email=email).first()
+    if user:
+        login_user(user, duration=SESSION_DURATION)
+        log_action(user.id, "login_success", "via Google")
+        if user.is_admin:
+            return redirect(url_for("admin.dashboard"))
+        return redirect(url_for("client.gallery"))
+
+    user = User(name=name, email=email, role="client", oauth_provider="google")
+    db.session.add(user)
+    db.session.commit()
+    log_action(user.id, "oauth_register", "via Google")
+    login_user(user, duration=SESSION_DURATION)
+    return redirect(url_for("client.gallery"))
 
 
 @auth_bp.route("/logout")
