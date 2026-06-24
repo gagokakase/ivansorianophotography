@@ -99,11 +99,26 @@
         {% if album.description %}
         <p class="mt-3" style="color: var(--isp-text-muted); font-size: 18px; line-height: 1.5; max-width: 600px;">{{ album.description }}</p>
         {% endif %}
-        <div class="flex items-center gap-4 mt-4">
+        <div class="flex items-center gap-4 mt-4 flex-wrap">
           <p style="color: var(--isp-text-muted); font-size: 16px;">
             <i class="bi bi-images" style="font-size: 17px;"></i> {{ photos|length }} photo{{ 's' if photos|length != 1 }}
           </p>
           {% if photos|length > 0 %}
+          <button onclick="toggleSelectionMode()" id="select-btn"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold"
+            style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-cream); font-size: 14px; font-weight: 500;">
+            <i class="bi bi-check2-square" style="font-size: 16px;"></i> Select Photos
+          </button>
+          <button onclick="selectAllPhotos()" id="select-all-btn"
+            class="hidden items-center gap-2 px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold"
+            style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-cream); font-size: 14px; font-weight: 500;">
+            <i class="bi bi-check2-all" style="font-size: 16px;"></i> Select All
+          </button>
+          <button onclick="downloadSelected()" id="download-selected-btn"
+            class="hidden items-center gap-2 px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold"
+            style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold); font-size: 14px; font-weight: 500;">
+            <i class="bi bi-file-zip" style="font-size: 16px;"></i> Download Selected (<span id="selected-count">0</span>)
+          </button>
           <a href="/client/album/{{ album.id }}/export"
             class="flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold"
             style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold); font-size: 14px; font-weight: 500;">
@@ -117,10 +132,15 @@
       {% if photos %}
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {% for photo in photos %}
-        <div class="gallery-card relative overflow-hidden rounded-lg cursor-pointer" onclick="openLightbox('{{ url_for('static', filename='uploads/' + photo.filename) }}', '{{ photo.title or photo.original_name }}', '{{ photo.uploaded_at.strftime('%B %d, %Y') }}', {{ photo.id }})">
+        <div class="gallery-card relative overflow-hidden rounded-lg cursor-pointer photo-item" data-photo-id="{{ photo.id }}"
+          onclick="onPhotoClick(event, '{{ url_for('static', filename='uploads/' + photo.filename) }}', '{{ photo.title or photo.original_name }}', '{{ photo.uploaded_at.strftime('%B %d, %Y') }}', {{ photo.id }})">
           <div style="aspect-ratio: 4/5; overflow: hidden;">
             <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ photo.original_name }}" loading="lazy"
               style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+          <div class="photo-checkmark absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center"
+            style="background-color: var(--isp-gold); display: none; z-index: 5;">
+            <i class="bi bi-check-lg" style="font-size: 18px; color: var(--isp-bg);"></i>
           </div>
         </div>
         {% endfor %}
@@ -162,6 +182,99 @@
   </div>
 
   <script>
+    var selectionMode = false;
+    var selectedPhotos = new Set();
+
+    function toggleSelectionMode() {
+      selectionMode = !selectionMode;
+      var selectBtn = document.getElementById('select-btn');
+      var selectAllBtn = document.getElementById('select-all-btn');
+      var dlSelectedBtn = document.getElementById('download-selected-btn');
+
+      if (selectionMode) {
+        selectBtn.innerHTML = '<i class="bi bi-x-circle" style="font-size: 16px;"></i> Cancel Selection';
+        selectBtn.style.borderColor = 'rgba(220,38,38,0.5)';
+        selectBtn.style.color = '#ef6b6b';
+        selectAllBtn.classList.remove('hidden');
+        selectAllBtn.classList.add('flex');
+        dlSelectedBtn.classList.remove('hidden');
+        dlSelectedBtn.classList.add('flex');
+      } else {
+        selectBtn.innerHTML = '<i class="bi bi-check2-square" style="font-size: 16px;"></i> Select Photos';
+        selectBtn.style.borderColor = 'rgba(200,169,110,0.3)';
+        selectBtn.style.color = 'var(--isp-cream)';
+        selectAllBtn.classList.add('hidden');
+        selectAllBtn.classList.remove('flex');
+        dlSelectedBtn.classList.add('hidden');
+        dlSelectedBtn.classList.remove('flex');
+        selectedPhotos.clear();
+        updateSelectionUI();
+      }
+    }
+
+    function selectAllPhotos() {
+      var items = document.querySelectorAll('.photo-item');
+      var allSelected = selectedPhotos.size === items.length;
+      if (allSelected) {
+        selectedPhotos.clear();
+      } else {
+        items.forEach(function(item) {
+          selectedPhotos.add(parseInt(item.dataset.photoId));
+        });
+      }
+      updateSelectionUI();
+    }
+
+    function onPhotoClick(e, src, title, date, photoId) {
+      if (selectionMode) {
+        e.stopPropagation();
+        if (selectedPhotos.has(photoId)) {
+          selectedPhotos.delete(photoId);
+        } else {
+          selectedPhotos.add(photoId);
+        }
+        updateSelectionUI();
+      } else {
+        openLightbox(src, title, date, photoId);
+      }
+    }
+
+    function updateSelectionUI() {
+      document.querySelectorAll('.photo-item').forEach(function(item) {
+        var pid = parseInt(item.dataset.photoId);
+        var check = item.querySelector('.photo-checkmark');
+        if (selectedPhotos.has(pid)) {
+          check.style.display = 'flex';
+          item.style.outline = '3px solid var(--isp-gold)';
+          item.style.outlineOffset = '-3px';
+        } else {
+          check.style.display = 'none';
+          item.style.outline = 'none';
+        }
+      });
+      document.getElementById('selected-count').textContent = selectedPhotos.size;
+    }
+
+    function downloadSelected() {
+      if (selectedPhotos.size === 0) {
+        alert('Please select at least one photo.');
+        return;
+      }
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/client/album/{{ album.id }}/export-selected';
+      selectedPhotos.forEach(function(pid) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'photo_ids';
+        input.value = pid;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+    }
+
     function openLightbox(src, title, date, photoId) {
       var lb = document.getElementById('lightbox');
       var img = document.getElementById('lightbox-img');

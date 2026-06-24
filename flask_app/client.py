@@ -156,6 +156,79 @@ def export_album(album_id):
     )
 
 
+@client_bp.route("/album/<int:album_id>/export-selected", methods=["POST"])
+@login_required
+def export_selected(album_id):
+    if current_user.is_admin:
+        return redirect(url_for("admin.dashboard"))
+
+    assignment = AlbumAssignment.query.filter_by(album_id=album_id, client_id=current_user.id).first()
+    if not assignment:
+        abort(403)
+
+    album = assignment.album
+    photo_ids = request.form.getlist("photo_ids")
+    if not photo_ids:
+        return redirect(url_for("client.view_album", album_id=album_id))
+
+    upload_dir = current_app.config["UPLOAD_FOLDER"]
+    originals_dir = os.path.join(upload_dir, "originals")
+
+    # Build a set of valid photo IDs from this album
+    valid_photos = {ap.photo.id: ap.photo for ap in album.photos}
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        used_names = set()
+        for pid in photo_ids:
+            try:
+                pid_int = int(pid)
+            except (ValueError, TypeError):
+                continue
+            photo = valid_photos.get(pid_int)
+            if not photo:
+                continue
+
+            base_name = os.path.splitext(photo.filename)[0]
+
+            # Find original file
+            original_filename = None
+            if os.path.exists(originals_dir):
+                for f in os.listdir(originals_dir):
+                    if os.path.splitext(f)[0] == base_name:
+                        original_filename = f
+                        break
+
+            if original_filename and os.path.exists(os.path.join(originals_dir, original_filename)):
+                filepath = os.path.join(originals_dir, original_filename)
+            else:
+                filepath = os.path.join(upload_dir, photo.filename)
+                original_filename = photo.filename
+
+            if not os.path.exists(filepath):
+                continue
+
+            download_name = photo.original_name or original_filename
+            if download_name in used_names:
+                name_base, name_ext = os.path.splitext(download_name)
+                counter = 2
+                while f"{name_base}_{counter}{name_ext}" in used_names:
+                    counter += 1
+                download_name = f"{name_base}_{counter}{name_ext}"
+            used_names.add(download_name)
+
+            with open(filepath, "rb") as src:
+                zf.writestr(download_name, src.read())
+
+    zip_buffer.seek(0)
+    safe_name = album.name.replace(" ", "_").replace("/", "_")
+    return Response(
+        zip_buffer,
+        mimetype="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={safe_name}_selected.zip"}
+    )
+
+
 @client_bp.route("/photo/<int:photo_id>")
 @login_required
 def view_photo(photo_id):

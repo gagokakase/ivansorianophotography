@@ -58,6 +58,10 @@ csrf.exempt(app.view_functions["auth.facebook_callback"])
 csrf.exempt(app.view_functions["auth.google_login"])
 csrf.exempt(app.view_functions["auth.google_callback"])
 
+# Exempt client export-selected route (download-only, no state changes)
+if "client.export_selected" in app.view_functions:
+    csrf.exempt(app.view_functions["client.export_selected"])
+
 
 # Ensure upload directory exists
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
