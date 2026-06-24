@@ -33,6 +33,7 @@ desktop.ini
 
 # Uploads (user-generated content)
 flask_app/static/uploads/
+flask_app/static/uploads/originals/
 
 # Inquiries (user-submitted form data)
 flask_app/inquiries.json

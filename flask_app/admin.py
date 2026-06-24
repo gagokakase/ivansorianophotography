@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from models import db, User, Photo, PhotoAssignment, Album, AlbumPhoto, AlbumAssignment, AlbumCoverPhoto, AdminLog
 from utils import sanitize_text, sanitize_password, validate_email, allowed_file, allowed_file_size, MAX_NAME_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH
+from image_utils import optimize_image, get_webp_filename
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -201,7 +202,9 @@ def upload_photo():
     title = sanitize_text(request.form.get("title"), max_length=MAX_TITLE_LENGTH)
 
     upload_dir = os.path.join(current_app.config["UPLOAD_FOLDER"])
+    originals_dir = os.path.join(upload_dir, "originals")
     os.makedirs(upload_dir, exist_ok=True)
+    os.makedirs(originals_dir, exist_ok=True)
 
     uploaded = 0
     for f in files:
@@ -212,11 +215,16 @@ def upload_photo():
             original = secure_filename(f.filename)
             # Add timestamp to avoid collisions
             import time
-            filename = f"{int(time.time())}_{original}"
-            filepath = os.path.join(upload_dir, filename)
-            f.save(filepath)
+            saved_name = f"{int(time.time())}_{original}"
+            original_path = os.path.join(originals_dir, saved_name)
+            f.save(original_path)
 
-            photo = Photo(filename=filename, original_name=original, title=title, uploaded_by=current_user.id)
+            # Convert to optimized WebP
+            webp_name = get_webp_filename(saved_name)
+            webp_path = os.path.join(upload_dir, webp_name)
+            optimize_image(original_path, webp_path)
+
+            photo = Photo(filename=webp_name, original_name=original, title=title, uploaded_by=current_user.id)
             db.session.add(photo)
             uploaded += 1
 
@@ -238,6 +246,11 @@ def delete_photo(photo_id):
     filepath = os.path.join(upload_dir, photo.filename)
     if os.path.exists(filepath):
         os.remove(filepath)
+    # Also remove original from backup folder
+    original_filename = os.path.splitext(photo.filename)[0] + os.path.splitext(photo.original_name)[1]
+    original_filepath = os.path.join(upload_dir, "originals", original_filename)
+    if os.path.exists(original_filepath):
+        os.remove(original_filepath)
 
     db.session.delete(photo)
     db.session.commit()
@@ -363,7 +376,9 @@ def upload_to_album(album_id):
 
     files = request.files.getlist("files")
     upload_dir = os.path.join(current_app.config["UPLOAD_FOLDER"])
+    originals_dir = os.path.join(upload_dir, "originals")
     os.makedirs(upload_dir, exist_ok=True)
+    os.makedirs(originals_dir, exist_ok=True)
 
     uploaded = 0
     for f in files:
@@ -372,11 +387,16 @@ def upload_to_album(album_id):
                 continue
             original = secure_filename(f.filename)
             import time
-            filename = f"{int(time.time())}_{uploaded}_{original}"
-            filepath = os.path.join(upload_dir, filename)
-            f.save(filepath)
+            saved_name = f"{int(time.time())}_{uploaded}_{original}"
+            original_path = os.path.join(originals_dir, saved_name)
+            f.save(original_path)
 
-            photo = Photo(filename=filename, original_name=original, uploaded_by=current_user.id)
+            # Convert to optimized WebP
+            webp_name = get_webp_filename(saved_name)
+            webp_path = os.path.join(upload_dir, webp_name)
+            optimize_image(original_path, webp_path)
+
+            photo = Photo(filename=webp_name, original_name=original, uploaded_by=current_user.id)
             db.session.add(photo)
             db.session.flush()
 

@@ -6,7 +6,7 @@ MAX_EMAIL_LENGTH = 120
 MAX_DESCRIPTION_LENGTH = 2000
 MAX_TITLE_LENGTH = 200
 
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif", "bmp", "tiff"}
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
 
 _EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")

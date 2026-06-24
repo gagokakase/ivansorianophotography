@@ -36,7 +36,7 @@
       <a href="/admin/albums/{{ album.id }}" class="block">
         {% if album.cover_layout == 'single' and album.cover_photo %}
         <div style="aspect-ratio: 16/9; overflow: hidden; background-color: rgba(31,72,48,0.15);">
-          <img src="{{ url_for('static', filename='uploads/' + album.cover_photo.filename) }}" alt=""
+          <img src="{{ url_for('static', filename='uploads/' + album.cover_photo.filename) }}" alt="" loading="lazy"
             style="width: 100%; height: 100%; object-fit: cover; object-position: {{ album.cover_position_x or 50 }}% {{ album.cover_position_y or 50 }}%; transform: scale({{ album.cover_zoom or 1 }});" />
         </div>
         {% elif album.cover_layout != 'single' and album.cover_photos|length > 0 %}
@@ -44,13 +44,13 @@
           {% if album.cover_layout == 'duo' %}
             {% for cp in album.cover_photos[:2] %}
             <div style="flex: 1; overflow: hidden; {% if loop.index > 1 %}border-left: 2px solid var(--isp-bg);{% endif %}">
-              <img src="{{ url_for('static', filename='uploads/' + cp.photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+              <img src="{{ url_for('static', filename='uploads/' + cp.photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
             {% endfor %}
           {% elif album.cover_layout == 'trio' %}
             {% for cp in album.cover_photos[:3] %}
             <div style="flex: {% if loop.index == 1 %}2{% else %}1{% endif %}; overflow: hidden; {% if loop.index > 1 %}border-left: 2px solid var(--isp-bg);{% endif %}">
-              <img src="{{ url_for('static', filename='uploads/' + cp.photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+              <img src="{{ url_for('static', filename='uploads/' + cp.photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
             {% endfor %}
           {% elif album.cover_layout == 'quad' %}
@@ -58,22 +58,22 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; width: 100%; height: 100%;">
               {% if cps|length > 0 %}
               <div style="grid-column: 1; grid-row: 1; overflow: hidden;">
-                <img src="{{ url_for('static', filename='uploads/' + cps[0].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                <img src="{{ url_for('static', filename='uploads/' + cps[0].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
               </div>
               {% endif %}
               {% if cps|length > 1 %}
               <div style="grid-column: 2; grid-row: 1; overflow: hidden;">
-                <img src="{{ url_for('static', filename='uploads/' + cps[1].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                <img src="{{ url_for('static', filename='uploads/' + cps[1].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
               </div>
               {% endif %}
               {% if cps|length > 2 %}
               <div style="grid-column: 1; grid-row: 2; overflow: hidden;">
-                <img src="{{ url_for('static', filename='uploads/' + cps[2].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                <img src="{{ url_for('static', filename='uploads/' + cps[2].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
               </div>
               {% endif %}
               {% if cps|length > 3 %}
               <div style="grid-column: 2; grid-row: 2; overflow: hidden;">
-                <img src="{{ url_for('static', filename='uploads/' + cps[3].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                <img src="{{ url_for('static', filename='uploads/' + cps[3].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
               </div>
               {% endif %}
             </div>
@@ -83,29 +83,29 @@
               <div style="flex: 1; display: flex; gap: 2px; min-height: 0; overflow: hidden;">
                 {% if cps|length > 0 %}
                 <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
-                  <img src="{{ url_for('static', filename='uploads/' + cps[0].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img src="{{ url_for('static', filename='uploads/' + cps[0].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
                 </div>
                 {% endif %}
                 {% if cps|length > 1 %}
                 <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
-                  <img src="{{ url_for('static', filename='uploads/' + cps[1].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img src="{{ url_for('static', filename='uploads/' + cps[1].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
                 </div>
                 {% endif %}
               </div>
               <div style="flex: 1; display: flex; gap: 2px; min-height: 0; overflow: hidden;">
                 {% if cps|length > 2 %}
                 <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
-                  <img src="{{ url_for('static', filename='uploads/' + cps[2].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img src="{{ url_for('static', filename='uploads/' + cps[2].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
                 </div>
                 {% endif %}
                 {% if cps|length > 3 %}
                 <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
-                  <img src="{{ url_for('static', filename='uploads/' + cps[3].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img src="{{ url_for('static', filename='uploads/' + cps[3].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
                 </div>
                 {% endif %}
                 {% if cps|length > 4 %}
                 <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
-                  <img src="{{ url_for('static', filename='uploads/' + cps[4].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img src="{{ url_for('static', filename='uploads/' + cps[4].photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
                 </div>
                 {% endif %}
               </div>
@@ -118,7 +118,7 @@
           {% if album_photos|length > 0 %}
             {% for ap in album_photos %}
             <div style="overflow: hidden;">
-              <img src="{{ url_for('static', filename='uploads/' + ap.photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+              <img src="{{ url_for('static', filename='uploads/' + ap.photo.filename) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
             {% endfor %}
           {% else %}
