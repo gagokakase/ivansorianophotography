@@ -3,7 +3,7 @@ from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-from models import db, User, Photo, PhotoAssignment, Album, AlbumPhoto, AlbumAssignment
+from models import db, User, Photo, PhotoAssignment, Album, AlbumPhoto, AlbumAssignment, AlbumCoverPhoto
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -316,6 +316,42 @@ def remove_photo_from_album(album_id, photo_id):
         db.session.delete(ap)
         db.session.commit()
     return jsonify({"success": True, "message": "Photo removed from album."})
+
+
+@admin_bp.route("/albums/<int:album_id>/cover", methods=["POST"])
+@admin_required
+def set_album_cover(album_id):
+    album = Album.query.get_or_404(album_id)
+    data = request.get_json(force=True)
+
+    layout = data.get("layout", "single")
+    photo_ids = data.get("photo_ids", [])
+
+    if layout == "single":
+        photo_id = data.get("photo_id")
+        if photo_id:
+            ap = AlbumPhoto.query.filter_by(album_id=album.id, photo_id=photo_id).first()
+            if not ap:
+                return jsonify({"success": False, "message": "Photo is not in this album."}), 400
+            album.cover_photo_id = photo_id
+        album.cover_position_x = data.get("position_x", 50.0)
+        album.cover_position_y = data.get("position_y", 50.0)
+        album.cover_zoom = data.get("zoom", 1.0)
+    else:
+        album.cover_photo_id = None
+
+    album.cover_layout = layout
+
+    # Replace cover photos
+    AlbumCoverPhoto.query.filter_by(album_id=album.id).delete()
+    for i, pid in enumerate(photo_ids):
+        ap = AlbumPhoto.query.filter_by(album_id=album.id, photo_id=pid).first()
+        if ap:
+            album_cover = AlbumCoverPhoto(album_id=album.id, photo_id=pid, position=i)
+            db.session.add(album_cover)
+
+    db.session.commit()
+    return jsonify({"success": True, "message": "Cover updated."})
 
 
 @admin_bp.route("/albums/<int:album_id>/assign", methods=["POST"])

@@ -118,6 +118,85 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {% for album in albums %}
           <a href="/client/album/{{ album.id }}" class="gallery-card rounded-lg overflow-hidden block">
+            {% if album.cover_layout == 'single' and album.cover_photo %}
+            <div style="aspect-ratio: 16/9; overflow: hidden; background-color: rgba(31,72,48,0.15);">
+              <img src="{{ url_for('static', filename='uploads/' + album.cover_photo.filename) }}" alt=""
+                style="width: 100%; height: 100%; object-fit: cover; object-position: {{ album.cover_position_x or 50 }}% {{ album.cover_position_y or 50 }}%; transform: scale({{ album.cover_zoom or 1 }});" />
+            </div>
+            {% elif album.cover_layout != 'single' and album.cover_photos|length > 0 %}
+            <div style="aspect-ratio: 16/9; overflow: hidden; display: flex; background-color: rgba(31,72,48,0.15);">
+              {% if album.cover_layout == 'duo' %}
+                {% for cp in album.cover_photos[:2] %}
+                <div style="flex: 1; overflow: hidden; {% if loop.index > 1 %}border-left: 2px solid var(--isp-bg);{% endif %}">
+                  <img src="{{ url_for('static', filename='uploads/' + cp.photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+                {% endfor %}
+              {% elif album.cover_layout == 'trio' %}
+                {% for cp in album.cover_photos[:3] %}
+                <div style="flex: {% if loop.index == 1 %}2{% else %}1{% endif %}; overflow: hidden; {% if loop.index > 1 %}border-left: 2px solid var(--isp-bg);{% endif %}">
+                  <img src="{{ url_for('static', filename='uploads/' + cp.photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+                {% endfor %}
+              {% elif album.cover_layout == 'quad' %}
+                {% set cps = album.cover_photos[:4] %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; width: 100%; height: 100%;">
+                  {% if cps|length > 0 %}
+                  <div style="grid-column: 1; grid-row: 1; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='uploads/' + cps[0].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  </div>
+                  {% endif %}
+                  {% if cps|length > 1 %}
+                  <div style="grid-column: 2; grid-row: 1; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='uploads/' + cps[1].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  </div>
+                  {% endif %}
+                  {% if cps|length > 2 %}
+                  <div style="grid-column: 1; grid-row: 2; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='uploads/' + cps[2].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  </div>
+                  {% endif %}
+                  {% if cps|length > 3 %}
+                  <div style="grid-column: 2; grid-row: 2; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='uploads/' + cps[3].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                  </div>
+                  {% endif %}
+                </div>
+              {% elif album.cover_layout == 'mosaic' %}
+                {% set cps = album.cover_photos[:5] %}
+                <div style="display: flex; flex-direction: column; width: 100%; height: 100%;">
+                  <div style="flex: 1; display: flex; gap: 2px; min-height: 0; overflow: hidden;">
+                    {% if cps|length > 0 %}
+                    <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
+                      <img src="{{ url_for('static', filename='uploads/' + cps[0].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    {% endif %}
+                    {% if cps|length > 1 %}
+                    <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
+                      <img src="{{ url_for('static', filename='uploads/' + cps[1].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div style="flex: 1; display: flex; gap: 2px; min-height: 0; overflow: hidden;">
+                    {% if cps|length > 2 %}
+                    <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
+                      <img src="{{ url_for('static', filename='uploads/' + cps[2].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    {% endif %}
+                    {% if cps|length > 3 %}
+                    <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
+                      <img src="{{ url_for('static', filename='uploads/' + cps[3].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    {% endif %}
+                    {% if cps|length > 4 %}
+                    <div style="flex: 1; overflow: hidden; height: 100%; min-width: 0;">
+                      <img src="{{ url_for('static', filename='uploads/' + cps[4].photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+            {% else %}
             <div class="grid grid-cols-2 gap-0.5" style="aspect-ratio: 16/9; background-color: rgba(31,72,48,0.15);">
               {% set album_photos = album.photos[:4] %}
               {% if album_photos|length > 0 %}
@@ -132,6 +211,7 @@
                 </div>
               {% endif %}
             </div>
+            {% endif %}
             <div class="p-5">
               <h3 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 22px; font-weight: 400;">{{ album.name }}</h3>
               {% if album.description %}

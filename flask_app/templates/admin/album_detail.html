@@ -32,6 +32,10 @@
 
   <!-- Action buttons -->
   <div class="flex items-center gap-3 mb-8">
+    <button onclick="openCoverEditor()"
+      class="admin-btn px-5 py-3 flex items-center gap-2 rounded-lg" style="font-size: 14px; font-weight: 500;">
+      <i class="bi bi-aspect-ratio" style="font-size: 16px;"></i> Edit Cover
+    </button>
     <button onclick="openAssignAlbumModal()"
       class="px-5 py-3 flex items-center gap-2 rounded-lg transition-all hover:border-isp-gold" style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold); font-size: 14px; font-weight: 500;">
       <i class="bi bi-people" style="font-size: 16px;"></i> Assign to Clients
@@ -80,16 +84,21 @@
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
     {% for ap in album.photos %}
     <div class="admin-card relative overflow-hidden rounded-lg group">
+      {% if album.cover_photo_id == ap.photo.id %}
+      <div class="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full flex items-center gap-1.5" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 12px; font-weight: 600; letter-spacing: 0.05em;">
+        <i class="bi bi-star-fill" style="font-size: 13px;"></i> Cover
+      </div>
+      {% endif %}
       <div style="aspect-ratio: 1/1; overflow: hidden;">
         <img src="{{ url_for('static', filename='uploads/' + ap.photo.filename) }}" alt="{{ ap.photo.original_name }}"
           style="width: 100%; height: 100%; object-fit: cover;" />
       </div>
-      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+      <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
         style="background-color: rgba(8,12,9,0.75);">
         <button onclick="removePhoto({{ album.id }}, {{ ap.photo.id }})"
           class="px-4 py-2.5 uppercase tracking-wider transition-all hover:opacity-80 flex items-center gap-2"
-          style="background-color: rgba(220,38,38,0.85); color: white; font-size: 14px; font-weight: 500; border-radius: 4px;">
-          <i class="bi bi-trash" style="font-size: 16px;"></i> Remove
+          style="background-color: rgba(220,38,38,0.85); color: white; font-size: 13px; font-weight: 500; border-radius: 4px;">
+          <i class="bi bi-trash" style="font-size: 15px;"></i> Remove
         </button>
       </div>
       <div class="p-4">
@@ -104,7 +113,7 @@
       <i class="bi bi-images" style="font-size: 32px; color: var(--isp-text-muted);"></i>
     </div>
     <p style="color: var(--isp-cream); font-size: 18px; font-family: var(--font-display);">No photos in this album yet</p>
-    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 15px;">Click "Add Photos" to select from your library.</p>
+    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 15px;">Drag & drop photos above to add them to this album.</p>
   </div>
   {% endif %}
 
@@ -130,6 +139,127 @@
       <p style="color: var(--isp-text-muted); font-size: 16px;">No clients assigned. Click "Assign to Clients" to share this album.</p>
     </div>
     {% endif %}
+  </div>
+
+  <!-- Cover editor modal -->
+  <div id="cover-editor-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.85); backdrop-filter: blur(8px);">
+    <div class="admin-modal w-full" style="padding: 0; overflow: hidden; max-width: 1700px; margin: 0 auto;">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-8 py-5" style="border-bottom: 1px solid rgba(200,169,110,0.12);">
+        <div class="flex items-center gap-3">
+          <i class="bi bi-aspect-ratio" style="font-size: 24px; color: var(--isp-gold);"></i>
+          <div>
+            <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 24px; font-weight: 300;">Cover Editor</h2>
+            <p id="cover-editor-subtitle" style="color: var(--isp-text-muted); font-size: 13px; margin-top: 2px;">Choose a layout and select photos</p>
+          </div>
+        </div>
+        <button onclick="closeCoverEditor()" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
+          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        </button>
+      </div>
+
+      <!-- Editor body -->
+      <div class="flex" style="height: 880px; overflow: hidden;">
+        <!-- Left: Preview + Layout -->
+        <div class="flex-1 flex flex-col" style="padding: 24px; background-color: #050806; min-height: 0; overflow: hidden;">
+          <!-- Layout selector -->
+          <div class="flex items-center gap-2 mb-5">
+            <span style="color: var(--isp-text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; margin-right: 8px;">Layout</span>
+            <button onclick="selectLayout('single')" id="layout-btn-single" class="layout-btn px-3 py-2 rounded-lg flex items-center gap-2 transition-all" style="border: 1px solid rgba(200,169,110,0.2); font-size: 13px; color: var(--isp-cream);">
+              <i class="bi bi-square"></i> 1
+            </button>
+            <button onclick="selectLayout('duo')" id="layout-btn-duo" class="layout-btn px-3 py-2 rounded-lg flex items-center gap-2 transition-all" style="border: 1px solid rgba(200,169,110,0.2); font-size: 13px; color: var(--isp-cream);">
+              <i class="bi bi-layout-split"></i> 2
+            </button>
+            <button onclick="selectLayout('trio')" id="layout-btn-trio" class="layout-btn px-3 py-2 rounded-lg flex items-center gap-2 transition-all" style="border: 1px solid rgba(200,169,110,0.2); font-size: 13px; color: var(--isp-cream);">
+              <i class="bi bi-layout-three-columns"></i> 3
+            </button>
+            <button onclick="selectLayout('quad')" id="layout-btn-quad" class="layout-btn px-3 py-2 rounded-lg flex items-center gap-2 transition-all" style="border: 1px solid rgba(200,169,110,0.2); font-size: 13px; color: var(--isp-cream);">
+              <i class="bi bi-grid-2x2"></i> 4
+            </button>
+            <button onclick="selectLayout('mosaic')" id="layout-btn-mosaic" class="layout-btn px-3 py-2 rounded-lg flex items-center gap-2 transition-all" style="border: 1px solid rgba(200,169,110,0.2); font-size: 13px; color: var(--isp-cream);">
+              <i class="bi bi-grid-3x3-gap"></i> 5
+            </button>
+          </div>
+
+          <!-- Preview area -->
+          <div id="preview-area" class="flex-1 flex items-center justify-center" style="min-height: 0; overflow: hidden;">
+            <!-- Single photo: drag/zoom canvas -->
+            <div id="single-editor" class="w-full" style="display: none;">
+              <div class="relative" id="cover-canvas-area" style="background-color: #0a0e0c; overflow: hidden; cursor: grab; border-radius: 8px; border: 1px solid rgba(200,169,110,0.15);">
+                <div id="cover-frame" class="relative" style="width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 8px; background-color: #0a0e0c;">
+                  <img id="cover-editor-img" src="" alt="" style="position: absolute; user-select: none; -webkit-user-drag: none; pointer-events: none;" />
+                </div>
+                <div class="absolute pointer-events-none" style="left: 0; top: 0; right: 0; bottom: 0;">
+                  <div style="position: absolute; left: 33.33%; top: 0; bottom: 0; width: 1px; background: rgba(200,169,110,0.08);"></div>
+                  <div style="position: absolute; left: 66.66%; top: 0; bottom: 0; width: 1px; background: rgba(200,169,110,0.08);"></div>
+                  <div style="position: absolute; top: 33.33%; left: 0; right: 0; height: 1px; background: rgba(200,169,110,0.08);"></div>
+                  <div style="position: absolute; top: 66.66%; left: 0; right: 0; height: 1px; background: rgba(200,169,110,0.08);"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Multi photo: mosaic preview -->
+            <div id="mosaic-editor" class="w-full flex flex-col" style="display: none; flex: 1; min-height: 0; max-height: 100%;">
+              <div id="mosaic-preview" style="width: 100%; flex: 1; min-height: 0; border-radius: 8px; overflow: hidden; border: 2px solid rgba(200,169,110,0.25); background-color: #0a0e0c; display: flex;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Single-mode zoom controls -->
+          <div id="single-controls" class="mt-4" style="display: none;">
+            <div class="flex items-center gap-3">
+              <span style="color: var(--isp-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Zoom</span>
+              <button onclick="adjustZoom(-0.1)" class="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="border: 1px solid rgba(200,169,110,0.2); color: var(--isp-gold);">
+                <i class="bi bi-dash" style="font-size: 16px;"></i>
+              </button>
+              <input type="range" id="zoom-slider" min="1" max="3" step="0.05" value="1" class="flex-1" style="accent-color: var(--isp-gold);" oninput="setZoom(parseFloat(this.value))" />
+              <button onclick="adjustZoom(0.1)" class="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="border: 1px solid rgba(200,169,110,0.2); color: var(--isp-gold);">
+                <i class="bi bi-plus" style="font-size: 16px;"></i>
+              </button>
+              <button onclick="resetCoverEditor()" class="px-3 py-1.5 rounded-lg transition-colors hover:bg-isp-green flex items-center gap-1.5" style="border: 1px solid rgba(200,169,110,0.2); color: var(--isp-text-muted); font-size: 13px;">
+                <i class="bi bi-arrow-counterclockwise" style="font-size: 14px;"></i> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Photo picker -->
+        <div class="flex flex-col" style="width: 32rem; border-left: 1px solid rgba(200,169,110,0.12); background-color: rgba(10,14,12,0.5);">
+          <div class="px-5 py-4" style="border-bottom: 1px solid rgba(200,169,110,0.08);">
+            <p style="color: var(--isp-cream); font-size: 14px; font-weight: 500;">Select Photos</p>
+            <p id="slot-info" style="color: var(--isp-text-muted); font-size: 12px; margin-top: 2px;">Click photos to fill slots</p>
+          </div>
+          <div id="cover-photo-picker" class="flex-1 overflow-y-auto p-4 space-y-2">
+            {% for ap in album.photos %}
+            <div class="cover-pick-item flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all" 
+              data-photo-id="{{ ap.photo.id }}" 
+              data-photo-src="{{ url_for('static', filename='uploads/' + ap.photo.filename) }}"
+              onclick="toggleCoverPhoto({{ ap.photo.id }}, '{{ url_for('static', filename='uploads/' + ap.photo.filename) }}')"
+              style="border: 1px solid transparent;">
+              <div style="width: 48px; height: 48px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
+                <img src="{{ url_for('static', filename='uploads/' + ap.photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+              </div>
+              <p class="truncate flex-1" style="color: var(--isp-cream); font-size: 13px;">{{ ap.photo.title or ap.photo.original_name }}</p>
+              <div class="cover-slot-badge" data-photo-id="{{ ap.photo.id }}" style="display: none; width: 24px; height: 24px; border-radius: 50%; background-color: var(--isp-gold); color: var(--isp-bg); font-size: 12px; font-weight: 700; display: none; align-items: center; justify-content: center;"></div>
+            </div>
+            {% endfor %}
+          </div>
+          <!-- Actions -->
+          <div class="px-5 py-4 space-y-3" style="border-top: 1px solid rgba(200,169,110,0.08);">
+            <button onclick="saveCover()" class="admin-btn w-full py-3 flex items-center justify-center gap-2" style="font-size: 15px;">
+              <i class="bi bi-check-lg" style="font-size: 18px;"></i> Save Cover
+            </button>
+            <button onclick="clearAllCoverPhotos()" class="w-full py-2.5 rounded-lg transition-colors hover:bg-isp-green flex items-center justify-center gap-2" style="border: 1px solid rgba(200,169,110,0.15); color: var(--isp-text-muted); font-size: 14px;">
+              <i class="bi bi-eraser" style="font-size: 15px;"></i> Clear All
+            </button>
+            <button onclick="closeCoverEditor()" class="w-full py-2.5 rounded-lg transition-colors hover:bg-isp-green" style="border: 1px solid rgba(200,169,110,0.15); color: var(--isp-text-muted); font-size: 14px;">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Assign album modal -->
@@ -267,6 +397,495 @@ function uploadFiles(files) {
 
   xhr.send(formData);
 }
+
+// ---- Cover editor ----
+
+var coverEditor = {
+  layout: 'single',
+  selectedPhotos: [],
+  posX: 50,
+  posY: 50,
+  zoom: 1,
+  isDragging: false,
+  dragStartX: 0,
+  dragStartY: 0,
+  imgNaturalW: 0,
+  imgNaturalH: 0,
+  frameW: 0,
+  frameH: 0
+};
+
+var LAYOUT_SLOTS = { single: 1, duo: 2, trio: 3, quad: 4, mosaic: 5 };
+
+function openCoverEditor() {
+  coverEditor.selectedPhotos = [];
+  coverEditor.posX = {{ album.cover_position_x or 50 }};
+  coverEditor.posY = {{ album.cover_position_y or 50 }};
+  coverEditor.zoom = {{ album.cover_zoom or 1 }};
+
+  var currentLayout = '{{ album.cover_layout or "single" }}';
+  coverEditor.layout = currentLayout;
+
+  coverEditor.selectedPhotos = [];
+  {% if album.cover_layout == 'single' and album.cover_photo_id %}
+  coverEditor.selectedPhotos = [{{ album.cover_photo_id }}];
+  {% elif album.cover_layout != 'single' %}
+  {% for cp in album.cover_photos %}
+  coverEditor.selectedPhotos.push({{ cp.photo_id }});
+  {% endfor %}
+  {% endif %}
+
+  selectLayout(currentLayout);
+  updateSlotInfo();
+  updatePickerSelection();
+
+  document.getElementById('cover-editor-modal').style.display = 'flex';
+}
+
+function closeCoverEditor() {
+  document.getElementById('cover-editor-modal').style.display = 'none';
+}
+
+function selectLayout(layout) {
+  coverEditor.layout = layout;
+  var slots = LAYOUT_SLOTS[layout];
+
+  document.querySelectorAll('.layout-btn').forEach(function(btn) {
+    btn.style.borderColor = 'rgba(200,169,110,0.2)';
+    btn.style.backgroundColor = 'transparent';
+  });
+  var activeBtn = document.getElementById('layout-btn-' + layout);
+  if (activeBtn) {
+    activeBtn.style.borderColor = 'var(--isp-gold)';
+    activeBtn.style.backgroundColor = 'rgba(200,169,110,0.1)';
+  }
+
+  if (layout === 'single') {
+    document.getElementById('single-editor').style.display = 'block';
+    document.getElementById('mosaic-editor').style.display = 'none';
+    document.getElementById('single-controls').style.display = 'block';
+    document.getElementById('preview-area').classList.remove('items-stretch');
+    document.getElementById('preview-area').classList.add('items-center');
+    document.getElementById('cover-editor-subtitle').textContent = 'Drag to reposition · Scroll or use slider to zoom';
+
+    if (coverEditor.selectedPhotos.length > 0) {
+      loadSinglePhoto(coverEditor.selectedPhotos[0]);
+    }
+  } else {
+    document.getElementById('single-editor').style.display = 'none';
+    document.getElementById('mosaic-editor').style.display = 'flex';
+    document.getElementById('single-controls').style.display = 'none';
+    document.getElementById('preview-area').classList.remove('items-center');
+    document.getElementById('preview-area').classList.add('items-stretch');
+    document.getElementById('cover-editor-subtitle').textContent = 'Select ' + slots + ' photos from the list';
+
+    while (coverEditor.selectedPhotos.length > slots) {
+      coverEditor.selectedPhotos.pop();
+    }
+    renderMosaicPreview();
+  }
+
+  updateSlotInfo();
+  updatePickerSelection();
+}
+
+function loadSinglePhoto(photoId) {
+  var items = document.querySelectorAll('.cover-pick-item');
+  var src = null;
+  items.forEach(function(item) {
+    if (parseInt(item.dataset.photoId) === photoId) {
+      src = item.dataset.photoSrc;
+    }
+  });
+  if (!src) return;
+
+  var img = document.getElementById('cover-editor-img');
+  img.src = src;
+  img.onload = function() {
+    coverEditor.imgNaturalW = img.naturalWidth;
+    coverEditor.imgNaturalH = img.naturalHeight;
+    var frame = document.getElementById('cover-frame');
+    coverEditor.frameW = frame.offsetWidth;
+    coverEditor.frameH = frame.offsetHeight;
+    updateCoverImage();
+  };
+}
+
+function clearAllCoverPhotos() {
+  coverEditor.selectedPhotos = [];
+  if (coverEditor.layout === 'single') {
+    var img = document.getElementById('cover-editor-img');
+    if (img) img.src = '';
+  } else {
+    renderMosaicPreview();
+  }
+  updateSlotInfo();
+  updatePickerSelection();
+}
+
+function removeCoverPhotoAt(index) {
+  coverEditor.selectedPhotos.splice(index, 1);
+  if (coverEditor.layout === 'single') {
+    var img = document.getElementById('cover-editor-img');
+    if (img) img.src = '';
+  } else {
+    renderMosaicPreview();
+  }
+  updateSlotInfo();
+  updatePickerSelection();
+}
+
+function createRemoveBtn(index) {
+  var btn = document.createElement('button');
+  btn.style.position = 'absolute';
+  btn.style.top = '4px';
+  btn.style.right = '4px';
+  btn.style.width = '24px';
+  btn.style.height = '24px';
+  btn.style.borderRadius = '50%';
+  btn.style.backgroundColor = 'rgba(220,38,38,0.85)';
+  btn.style.color = 'white';
+  btn.style.border = 'none';
+  btn.style.cursor = 'pointer';
+  btn.style.display = 'flex';
+  btn.style.alignItems = 'center';
+  btn.style.justifyContent = 'center';
+  btn.style.zIndex = '10';
+  btn.onclick = function(e) { e.stopPropagation(); removeCoverPhotoAt(index); };
+  var icon = document.createElement('i');
+  icon.className = 'bi bi-x';
+  icon.style.fontSize = '16px';
+  btn.appendChild(icon);
+  return btn;
+}
+
+function toggleCoverPhoto(photoId, photoSrc) {
+  var slots = LAYOUT_SLOTS[coverEditor.layout];
+
+  if (coverEditor.layout === 'single') {
+    coverEditor.selectedPhotos = [photoId];
+    loadSinglePhoto(photoId);
+  } else {
+    var idx = coverEditor.selectedPhotos.indexOf(photoId);
+    if (idx > -1) {
+      coverEditor.selectedPhotos.splice(idx, 1);
+    } else {
+      if (coverEditor.selectedPhotos.length >= slots) {
+        coverEditor.selectedPhotos.shift();
+      }
+      coverEditor.selectedPhotos.push(photoId);
+    }
+    renderMosaicPreview();
+  }
+
+  updateSlotInfo();
+  updatePickerSelection();
+}
+
+function updateSlotInfo() {
+  var slots = LAYOUT_SLOTS[coverEditor.layout];
+  var filled = coverEditor.selectedPhotos.length;
+  var info = document.getElementById('slot-info');
+  if (coverEditor.layout === 'single') {
+    info.textContent = filled > 0 ? '1 photo selected' : 'Click a photo to select';
+  } else {
+    info.textContent = filled + ' / ' + slots + ' photos selected';
+  }
+}
+
+function updatePickerSelection() {
+  document.querySelectorAll('.cover-pick-item').forEach(function(item) {
+    var pid = parseInt(item.dataset.photoId);
+    var badge = item.querySelector('.cover-slot-badge');
+    if (coverEditor.selectedPhotos.indexOf(pid) > -1) {
+      item.style.borderColor = 'var(--isp-gold)';
+      item.style.backgroundColor = 'rgba(200,169,110,0.08)';
+      var slotNum = coverEditor.selectedPhotos.indexOf(pid) + 1;
+      if (badge) {
+        badge.style.display = 'flex';
+        badge.textContent = slotNum;
+      }
+    } else {
+      item.style.borderColor = 'transparent';
+      item.style.backgroundColor = 'transparent';
+      if (badge) badge.style.display = 'none';
+    }
+  });
+}
+
+function renderMosaicPreview() {
+  var container = document.getElementById('mosaic-preview');
+  container.innerHTML = '';
+  container.style.gridTemplateColumns = '';
+  container.style.gridTemplateRows = '';
+  container.style.gap = '';
+  container.style.flexDirection = '';
+  var slots = LAYOUT_SLOTS[coverEditor.layout];
+  var photos = coverEditor.selectedPhotos;
+
+  if (coverEditor.layout === 'mosaic') {
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+  } else if (coverEditor.layout === 'quad') {
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = '1fr 1fr';
+    container.style.gridTemplateRows = '1fr 1fr';
+    container.style.gap = '2px';
+  } else {
+    container.style.display = 'flex';
+  }
+
+  if (coverEditor.layout === 'mosaic') {
+    var topRow = document.createElement('div');
+    topRow.style.display = 'flex';
+    topRow.style.flex = '1';
+    topRow.style.gap = '2px';
+    topRow.style.minHeight = '0';
+    topRow.style.overflow = 'hidden';
+    var bottomRow = document.createElement('div');
+    bottomRow.style.display = 'flex';
+    bottomRow.style.flex = '1';
+    bottomRow.style.gap = '2px';
+    bottomRow.style.minHeight = '0';
+    bottomRow.style.overflow = 'hidden';
+
+    for (var i = 0; i < slots; i++) {
+      var slot = document.createElement('div');
+      slot.style.overflow = 'hidden';
+      slot.style.position = 'relative';
+      slot.style.flex = '1';
+      slot.style.height = '100%';
+      slot.style.minWidth = '0';
+
+      if (i < 2) { topRow.appendChild(slot); }
+      else { bottomRow.appendChild(slot); }
+
+      if (i < photos.length) {
+        var items = document.querySelectorAll('.cover-pick-item');
+        var src = null;
+        items.forEach(function(item) {
+          if (parseInt(item.dataset.photoId) === photos[i]) {
+            src = item.dataset.photoSrc;
+          }
+        });
+        if (src) {
+          var img = document.createElement('img');
+          img.src = src;
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          slot.appendChild(img);
+          slot.appendChild(createRemoveBtn(i));
+        }
+      } else {
+        slot.style.backgroundColor = 'rgba(31,72,48,0.15)';
+        slot.style.display = 'flex';
+        slot.style.alignItems = 'center';
+        slot.style.justifyContent = 'center';
+        var icon = document.createElement('i');
+        icon.className = 'bi bi-image';
+        icon.style.fontSize = '28px';
+        icon.style.color = 'rgba(200,169,110,0.2)';
+        slot.appendChild(icon);
+      }
+    }
+    container.appendChild(topRow);
+    container.appendChild(bottomRow);
+    updatePickerSelection();
+    return;
+  }
+
+  for (var i = 0; i < slots; i++) {
+    var slot = document.createElement('div');
+    slot.style.overflow = 'hidden';
+    slot.style.position = 'relative';
+
+    if (coverEditor.layout === 'duo') {
+      slot.style.flex = '1';
+    } else if (coverEditor.layout === 'trio') {
+      if (i === 0) { slot.style.flex = '2'; }
+      else { slot.style.flex = '1'; slot.style.borderLeft = '2px solid #050806'; }
+    } else if (coverEditor.layout === 'quad') {
+      if (i === 0) { slot.style.gridColumn = '1'; slot.style.gridRow = '1'; }
+      else if (i === 1) { slot.style.gridColumn = '2'; slot.style.gridRow = '1'; }
+      else if (i === 2) { slot.style.gridColumn = '1'; slot.style.gridRow = '2'; }
+      else if (i === 3) { slot.style.gridColumn = '2'; slot.style.gridRow = '2'; }
+    }
+
+    if (i < photos.length) {
+      var items = document.querySelectorAll('.cover-pick-item');
+      var src = null;
+      items.forEach(function(item) {
+        if (parseInt(item.dataset.photoId) === photos[i]) {
+          src = item.dataset.photoSrc;
+        }
+      });
+      if (src) {
+        var img = document.createElement('img');
+        img.src = src;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        slot.appendChild(img);
+        slot.appendChild(createRemoveBtn(i));
+      }
+    } else {
+      slot.style.backgroundColor = 'rgba(31,72,48,0.15)';
+      slot.style.display = 'flex';
+      slot.style.alignItems = 'center';
+      slot.style.justifyContent = 'center';
+      var icon = document.createElement('i');
+      icon.className = 'bi bi-image';
+      icon.style.fontSize = '28px';
+      icon.style.color = 'rgba(200,169,110,0.2)';
+      slot.appendChild(icon);
+    }
+
+    container.appendChild(slot);
+  }
+}
+
+function updateCoverImage() {
+  var img = document.getElementById('cover-editor-img');
+  var frame = document.getElementById('cover-frame');
+  var fw = coverEditor.frameW || frame.offsetWidth;
+  var fh = coverEditor.frameH || frame.offsetHeight;
+
+  if (!coverEditor.imgNaturalW) return;
+
+  var imgRatio = coverEditor.imgNaturalW / coverEditor.imgNaturalH;
+  var frameRatio = fw / fh;
+  var baseW, baseH;
+
+  if (imgRatio > frameRatio) {
+    baseH = fh;
+    baseW = fh * imgRatio;
+  } else {
+    baseW = fw;
+    baseH = fw / imgRatio;
+  }
+
+  var dispW = baseW * coverEditor.zoom;
+  var dispH = baseH * coverEditor.zoom;
+
+  var maxOffsetX = dispW - fw;
+  var maxOffsetY = dispH - fh;
+  var offsetX = (coverEditor.posX / 100) * maxOffsetX - maxOffsetX / 2;
+  var offsetY = (coverEditor.posY / 100) * maxOffsetY - maxOffsetY / 2;
+
+  img.style.width = dispW + 'px';
+  img.style.height = dispH + 'px';
+  img.style.left = '50%';
+  img.style.top = '50%';
+  img.style.transform = 'translate(calc(-50% + ' + offsetX + 'px), calc(-50% + ' + offsetY + 'px))';
+
+  document.getElementById('zoom-slider').value = coverEditor.zoom;
+}
+
+function setZoom(val) {
+  coverEditor.zoom = Math.max(1, Math.min(3, val));
+  updateCoverImage();
+}
+
+function adjustZoom(delta) {
+  setZoom(coverEditor.zoom + delta);
+}
+
+function resetCoverEditor() {
+  coverEditor.posX = 50;
+  coverEditor.posY = 50;
+  coverEditor.zoom = 1;
+  updateCoverImage();
+}
+
+function saveCover() {
+  var payload = {
+    layout: coverEditor.layout,
+    photo_ids: coverEditor.selectedPhotos
+  };
+
+  if (coverEditor.layout === 'single' && coverEditor.selectedPhotos.length > 0) {
+    payload.photo_id = coverEditor.selectedPhotos[0];
+    payload.position_x = coverEditor.posX;
+    payload.position_y = coverEditor.posY;
+    payload.zoom = coverEditor.zoom;
+  }
+
+  fetch('/admin/albums/' + albumId + '/cover', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      closeCoverEditor();
+      location.reload();
+    } else {
+      alert(data.message);
+    }
+  });
+}
+
+// Drag handling for single mode
+(function() {
+  var canvas = document.getElementById('cover-canvas-area');
+
+  canvas.addEventListener('mousedown', function(e) {
+    if (coverEditor.layout !== 'single') return;
+    coverEditor.isDragging = true;
+    coverEditor.dragStartX = e.clientX;
+    coverEditor.dragStartY = e.clientY;
+    coverEditor.dragStartPosX = coverEditor.posX;
+    coverEditor.dragStartPosY = coverEditor.posY;
+    canvas.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!coverEditor.isDragging) return;
+    var frame = document.getElementById('cover-frame');
+    var fw = coverEditor.frameW || frame.offsetWidth;
+    var fh = coverEditor.frameH || frame.offsetHeight;
+
+    var imgRatio = coverEditor.imgNaturalW / coverEditor.imgNaturalH;
+    var frameRatio = fw / fh;
+    var baseW, baseH;
+    if (imgRatio > frameRatio) { baseH = fh; baseW = fh * imgRatio; }
+    else { baseW = fw; baseH = fw / imgRatio; }
+
+    var dispW = baseW * coverEditor.zoom;
+    var dispH = baseH * coverEditor.zoom;
+    var maxOffsetX = dispW - fw;
+    var maxOffsetY = dispH - fh;
+
+    if (maxOffsetX === 0) maxOffsetX = 1;
+    if (maxOffsetY === 0) maxOffsetY = 1;
+
+    var dxPx = e.clientX - coverEditor.dragStartX;
+    var dyPx = e.clientY - coverEditor.dragStartY;
+
+    var dxPct = -(dxPx / maxOffsetX) * 100;
+    var dyPct = -(dyPx / maxOffsetY) * 100;
+
+    coverEditor.posX = Math.max(0, Math.min(100, coverEditor.dragStartPosX + dxPct));
+    coverEditor.posY = Math.max(0, Math.min(100, coverEditor.dragStartPosY + dyPct));
+    updateCoverImage();
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (coverEditor.isDragging) {
+      coverEditor.isDragging = false;
+      canvas.style.cursor = 'grab';
+    }
+  });
+
+  canvas.addEventListener('wheel', function(e) {
+    if (coverEditor.layout !== 'single') return;
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? -0.05 : 0.05;
+    setZoom(coverEditor.zoom + delta);
+  });
+})();
 
 // ---- Photo removal ----
 
