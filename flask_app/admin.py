@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from models import db, User, Photo, PhotoAssignment, Album, AlbumPhoto, AlbumAssignment, AlbumCoverPhoto, AdminLog
 from utils import sanitize_text, sanitize_password, validate_email, allowed_file, allowed_file_size, MAX_NAME_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH
-from image_utils import optimize_image, get_webp_filename
+from image_utils import optimize_image, get_avif_filename
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -258,12 +258,12 @@ def upload_photo():
             original_path = os.path.join(originals_dir, saved_name)
             f.save(original_path)
 
-            # Convert to optimized WebP
-            webp_name = get_webp_filename(saved_name)
-            webp_path = os.path.join(upload_dir, webp_name)
-            optimize_image(original_path, webp_path)
+            # Convert to optimized AVIF
+            avif_name = get_avif_filename(saved_name)
+            avif_path = os.path.join(upload_dir, avif_name)
+            optimize_image(original_path, avif_path)
 
-            photo = Photo(filename=webp_name, original_name=original, title=title, uploaded_by=current_user.id)
+            photo = Photo(filename=avif_name, original_name=original, title=title, uploaded_by=current_user.id)
             db.session.add(photo)
             uploaded += 1
 
@@ -430,12 +430,12 @@ def upload_to_album(album_id):
             original_path = os.path.join(originals_dir, saved_name)
             f.save(original_path)
 
-            # Convert to optimized WebP
-            webp_name = get_webp_filename(saved_name)
-            webp_path = os.path.join(upload_dir, webp_name)
-            optimize_image(original_path, webp_path)
+            # Convert to optimized AVIF
+            avif_name = get_avif_filename(saved_name)
+            avif_path = os.path.join(upload_dir, avif_name)
+            optimize_image(original_path, avif_path)
 
-            photo = Photo(filename=webp_name, original_name=original, uploaded_by=current_user.id)
+            photo = Photo(filename=avif_name, original_name=original, uploaded_by=current_user.id)
             db.session.add(photo)
             db.session.flush()
 

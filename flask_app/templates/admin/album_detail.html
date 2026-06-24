@@ -55,7 +55,7 @@
         <i class="bi bi-cloud-arrow-up" style="font-size: 32px; color: var(--isp-gold);"></i>
       </div>
       <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 22px; font-weight: 300;">Drag & drop photos here</p>
-      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 15px;">or click to browse — JPG, PNG, WEBP</p>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 15px;">or click to browse — JPG, PNG, AVIF</p>
     </div>
     <div id="drop-zone-active" style="display: none;">
       <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: rgba(200,169,110,0.2);">
@@ -64,7 +64,7 @@
       <p style="font-family: var(--font-display); color: var(--isp-gold); font-size: 22px; font-weight: 300;">Drop to upload</p>
       <p class="mt-2" style="color: var(--isp-cream); font-size: 15px;">Release files to add them to this album</p>
     </div>
-    <input type="file" id="album-file-input" accept="image/jpeg,image/png,image/webp" multiple style="display: none;" onchange="handleFileSelect(event)" />
+    <input type="file" id="album-file-input" accept="image/jpeg,image/png,image/avif,image/webp" multiple style="display: none;" onchange="handleFileSelect(event)" />
   </div>
 
   <!-- Upload progress -->
@@ -371,14 +371,14 @@ function uploadFiles(files) {
   for (var i = 0; i < files.length; i++) {
     var f = files[i];
     var ext = f.name.split('.').pop().toLowerCase();
-    if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp' || ext === 'gif' || ext === 'bmp' || ext === 'tiff') {
+    if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp' || ext === 'avif' || ext === 'gif' || ext === 'bmp' || ext === 'tiff') {
       formData.append('files', f);
       validCount++;
     }
   }
 
   if (validCount === 0) {
-    alert('No valid image files. Supported: JPG, PNG, WEBP');
+    alert('No valid image files. Supported: JPG, PNG, AVIF');
     return;
   }
 
