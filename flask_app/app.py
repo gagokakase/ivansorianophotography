@@ -3,8 +3,42 @@ import os
 import re
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
+from flask_login import LoginManager
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "isp-secret-key-change-in-production")
+app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(os.path.dirname(os.path.abspath(__file__)), "site.db")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize extensions
+from models import db, User
+
+db.init_app(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "auth.login"
+login_manager.login_message = "Please log in to access this page."
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# Register blueprints
+from auth import auth_bp
+from admin import admin_bp
+from client import client_bp
+
+app.register_blueprint(auth_bp)
+app.register_blueprint(admin_bp)
+app.register_blueprint(client_bp)
+
+
+# Ensure upload directory exists
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
 
 INQUIRIES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inquiries.json")
 
@@ -21,6 +55,16 @@ def save_inquiry(data):
     inquiries.append(data)
     with open(INQUIRIES_FILE, "w", encoding="utf-8") as f:
         json.dump(inquiries, f, indent=2, ensure_ascii=False)
+
+
+def seed_admin():
+    """Create default admin account if none exists."""
+    if not User.query.filter_by(role="admin").first():
+        admin = User(name="Ivan Soriano", email="ics.photog@gmail.com", role="admin")
+        admin.set_password("admin123")
+        db.session.add(admin)
+        db.session.commit()
+        print("Default admin created: ics.photog@gmail.com / admin123")
 
 
 @app.route("/")
@@ -67,6 +111,12 @@ def contact():
     })
 
     return jsonify({"success": True, "message": "Message sent! Ivan will be in touch soon."})
+
+
+# Create tables and seed admin on startup
+with app.app_context():
+    db.create_all()
+    seed_admin()
 
 
 if __name__ == "__main__":

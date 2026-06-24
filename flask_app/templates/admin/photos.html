@@ -1,0 +1,177 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="admin-animate">
+
+  <!-- Page header -->
+  <div class="flex items-center justify-between mb-10">
+    <div>
+      <div class="flex items-center gap-4 mb-3">
+        <div style="width: 36px; height: 1px; background-color: var(--isp-gold);"></div>
+        <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Library</span>
+      </div>
+      <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 48px; font-weight: 300; line-height: 1.1;">Photos</h1>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 17px;">Upload photos and assign them to clients.</p>
+    </div>
+    <button onclick="document.getElementById('upload-modal').style.display='flex'"
+      class="admin-btn px-6 py-3.5 flex items-center gap-2" style="font-size: 15px;">
+      <i class="bi bi-cloud-arrow-up" style="font-size: 18px;"></i> Upload Photos
+    </button>
+  </div>
+
+  <!-- Photos grid -->
+  {% if photos %}
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {% for photo in photos %}
+    <div class="admin-card relative overflow-hidden group rounded-lg">
+      <div style="aspect-ratio: 1/1; overflow: hidden;">
+        <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ photo.original_name }}"
+          style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" />
+      </div>
+      <!-- Overlay actions -->
+      <div class="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity"
+        style="background-color: rgba(8,12,9,0.75);">
+        <button onclick="openAssignModal({{ photo.id }})"
+          class="admin-btn px-4 py-2.5 flex items-center gap-2" style="font-size: 14px;">
+          <i class="bi bi-link-45deg" style="font-size: 16px;"></i> Assign
+        </button>
+        <button onclick="deletePhoto({{ photo.id }})"
+          class="px-4 py-2.5 uppercase tracking-wider transition-all hover:opacity-80 flex items-center gap-2"
+          style="background-color: rgba(220,38,38,0.85); color: white; font-size: 14px; font-weight: 500; border-radius: 4px;">
+          <i class="bi bi-trash" style="font-size: 16px;"></i>
+        </button>
+      </div>
+      <!-- Info -->
+      <div class="p-4">
+        <p class="truncate" style="color: var(--isp-cream); font-size: 15px; font-weight: 500;">{{ photo.title or photo.original_name }}</p>
+        <p class="mt-1" style="color: var(--isp-text-muted); font-size: 13px;">{{ photo.uploaded_at.strftime('%Y-%m-%d') }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="admin-card text-center py-24">
+    <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(31,72,48,0.3);">
+      <i class="bi bi-images" style="font-size: 40px; color: var(--isp-text-muted);"></i>
+    </div>
+    <p style="color: var(--isp-cream); font-size: 20px; font-family: var(--font-display);">No photos uploaded yet</p>
+    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 16px;">Click "Upload Photos" to get started.</p>
+  </div>
+  {% endif %}
+
+  <!-- Upload modal -->
+  <div id="upload-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
+    <div class="admin-modal w-full max-w-lg p-10">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Upload Photos</h2>
+          <p style="color: var(--isp-text-muted); font-size: 15px; margin-top: 4px;">Select one or more images to upload</p>
+        </div>
+        <button onclick="document.getElementById('upload-modal').style.display='none'" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
+          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        </button>
+      </div>
+      <form method="POST" action="/admin/photos/upload" enctype="multipart/form-data">
+        <div class="mb-5">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Title (optional)</label>
+          <input type="text" name="title" class="admin-input" placeholder="e.g. Mark & Dianne Wedding" />
+        </div>
+        <div class="mb-7">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Select Photos</label>
+          <input type="file" name="files" accept="image/jpeg,image/png,image/webp" multiple required class="admin-input" />
+          <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">JPG, PNG, WEBP. You can select multiple files.</p>
+        </div>
+        <button type="submit" class="admin-btn w-full py-4" style="font-size: 16px;">
+          Upload
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Assign modal -->
+  <div id="assign-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
+    <div class="admin-modal w-full max-w-lg p-10">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Assign to Clients</h2>
+          <p style="color: var(--isp-text-muted); font-size: 15px; margin-top: 4px;">Select which clients can see this photo</p>
+        </div>
+        <button onclick="document.getElementById('assign-modal').style.display='none'" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
+          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        </button>
+      </div>
+      <div id="assign-client-list" class="space-y-3 mb-7 max-h-80 overflow-y-auto pr-1">
+        {% if clients %}
+          {% for c in clients %}
+          <label class="flex items-center gap-4 p-4 cursor-pointer rounded-lg transition-colors hover:bg-isp-green" style="border: 1px solid rgba(31,72,48,0.3);">
+            <input type="checkbox" value="{{ c.id }}" class="assign-checkbox" style="width: 20px; height: 20px; accent-color: var(--isp-gold);" />
+            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 16px; font-weight: 600;">
+              {{ c.name[0] if c.name else '?' }}
+            </div>
+            <div class="flex flex-col leading-tight">
+              <span style="color: var(--isp-cream); font-size: 16px; font-weight: 500;">{{ c.name }}</span>
+              <span style="color: var(--isp-text-muted); font-size: 14px;">{{ c.email }}</span>
+            </div>
+          </label>
+          {% endfor %}
+        {% else %}
+          <p style="color: var(--isp-text-muted); font-size: 16px;">No clients available. Create a client first.</p>
+        {% endif %}
+      </div>
+      <button onclick="saveAssignments()" class="admin-btn w-full py-4" style="font-size: 16px;">
+        Save Assignments
+      </button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var currentPhotoId = null;
+
+function openAssignModal(photoId) {
+  currentPhotoId = photoId;
+  document.querySelectorAll('.assign-checkbox').forEach(cb => cb.checked = false);
+  fetch('/admin/photos/' + photoId + '/assignments')
+    .then(r => r.json())
+    .then(data => {
+      data.client_ids.forEach(id => {
+        var cb = document.querySelector('.assign-checkbox[value="' + id + '"]');
+        if (cb) cb.checked = true;
+      });
+    });
+  document.getElementById('assign-modal').style.display = 'flex';
+}
+
+function saveAssignments() {
+  if (!currentPhotoId) return;
+  var clientIds = [];
+  document.querySelectorAll('.assign-checkbox:checked').forEach(cb => clientIds.push(parseInt(cb.value)));
+
+  fetch('/admin/photos/' + currentPhotoId + '/assign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ client_ids: clientIds })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('assign-modal').style.display = 'none';
+      alert(data.message);
+    } else {
+      alert(data.message);
+    }
+  });
+}
+
+function deletePhoto(id) {
+  if (!confirm('Delete this photo? This will also remove all assignments.')) return;
+  deleteRequest('/admin/photos/' + id).then(data => {
+    if (data.success) location.reload();
+    else alert(data.message);
+  });
+}
+</script>
+{% endblock %}

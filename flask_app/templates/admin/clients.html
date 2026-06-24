@@ -1,0 +1,120 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="admin-animate">
+
+  <!-- Page header -->
+  <div class="flex items-center justify-between mb-10">
+    <div>
+      <div class="flex items-center gap-4 mb-3">
+        <div style="width: 36px; height: 1px; background-color: var(--isp-gold);"></div>
+        <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Accounts</span>
+      </div>
+      <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 48px; font-weight: 300; line-height: 1.1;">Clients</h1>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 17px;">Manage client accounts and their photo access.</p>
+    </div>
+    <button onclick="document.getElementById('create-modal').style.display='flex'"
+      class="admin-btn px-6 py-3.5 flex items-center gap-2" style="font-size: 15px;">
+      <i class="bi bi-plus-lg" style="font-size: 18px;"></i> Add Client
+    </button>
+  </div>
+
+  <!-- Clients table -->
+  {% if clients %}
+  <div class="admin-card overflow-x-auto">
+    <table class="w-full">
+      <thead>
+        <tr style="border-bottom: 1px solid rgba(200,169,110,0.15);">
+          <th class="text-left px-8 py-5 uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Name</th>
+          <th class="text-left px-8 py-5 uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Email</th>
+          <th class="text-left px-8 py-5 uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Photos</th>
+          <th class="text-left px-8 py-5 uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Joined</th>
+          <th class="text-right px-8 py-5 uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in clients %}
+        <tr style="border-bottom: 1px solid rgba(31,72,48,0.2); transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='rgba(31,72,48,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+          <td class="px-8 py-5">
+            <div class="flex items-center gap-4">
+              <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 18px; font-weight: 600;">
+                {{ c.name[0] if c.name else '?' }}
+              </div>
+              <span style="color: var(--isp-cream); font-size: 17px; font-weight: 500;">{{ c.name }}</span>
+            </div>
+          </td>
+          <td class="px-8 py-5" style="color: var(--isp-text-muted); font-size: 16px;">{{ c.email }}</td>
+          <td class="px-8 py-5">
+            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full" style="background-color: rgba(200,169,110,0.15); color: var(--isp-gold); font-size: 15px; font-weight: 500; min-width: 36px;">
+              {{ c.assignments | length }}
+            </span>
+          </td>
+          <td class="px-8 py-5" style="color: var(--isp-text-muted); font-size: 15px;">{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+          <td class="px-8 py-5 text-right">
+            <button onclick="deleteClient({{ c.id }}, '{{ c.name }}')"
+              class="inline-flex items-center justify-center w-10 h-10 rounded-lg transition-all hover:bg-red-900/30"
+              style="color: var(--isp-text-muted);">
+              <i class="bi bi-trash" style="font-size: 18px;"></i>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="admin-card text-center py-24">
+    <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: rgba(31,72,48,0.3);">
+      <i class="bi bi-people" style="font-size: 40px; color: var(--isp-text-muted);"></i>
+    </div>
+    <p style="color: var(--isp-cream); font-size: 20px; font-family: var(--font-display);">No clients yet</p>
+    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 16px;">Click "Add Client" to create one.</p>
+  </div>
+  {% endif %}
+
+  <!-- Create client modal -->
+  <div id="create-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
+    <div class="admin-modal w-full max-w-lg p-10">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Add Client</h2>
+          <p style="color: var(--isp-text-muted); font-size: 15px; margin-top: 4px;">Create a new client account</p>
+        </div>
+        <button onclick="document.getElementById('create-modal').style.display='none'" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
+          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
+        </button>
+      </div>
+      <form method="POST" action="/admin/clients/create">
+        <div class="mb-5">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Full Name</label>
+          <input type="text" name="name" required class="admin-input" placeholder="Client name" />
+        </div>
+        <div class="mb-5">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Email</label>
+          <input type="email" name="email" required class="admin-input" placeholder="client@email.com" />
+        </div>
+        <div class="mb-7">
+          <label class="block mb-2.5 uppercase" style="font-size: 13px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Password</label>
+          <input type="password" name="password" required class="admin-input" placeholder="Temporary password" />
+        </div>
+        <button type="submit" class="admin-btn w-full py-4" style="font-size: 16px;">
+          Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deleteClient(id, name) {
+  if (!confirm('Delete client "' + name + '"? This will also remove all photo assignments.')) return;
+  deleteRequest('/admin/clients/' + id).then(data => {
+    if (data.success) location.reload();
+    else alert(data.message);
+  });
+}
+</script>
+{% endblock %}

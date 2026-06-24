@@ -1,0 +1,94 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="admin-animate">
+
+  <!-- Page header -->
+  <div class="mb-10">
+    <div class="flex items-center gap-4 mb-3">
+      <div style="width: 36px; height: 1px; background-color: var(--isp-gold);"></div>
+      <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Overview</span>
+    </div>
+    <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 48px; font-weight: 300; line-height: 1.1;">Dashboard</h1>
+    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 17px;">Manage your clients and photos from here.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <div class="admin-card p-8">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background-color: rgba(31,72,48,0.4);">
+          <i class="bi bi-people-fill" style="font-size: 28px; color: var(--isp-gold);"></i>
+        </div>
+        <span class="uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Clients</span>
+      </div>
+      <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 56px; font-weight: 300; line-height: 1;">{{ total_clients }}</p>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">Registered client accounts</p>
+    </div>
+    <div class="admin-card p-8">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background-color: rgba(31,72,48,0.4);">
+          <i class="bi bi-images" style="font-size: 28px; color: var(--isp-gold);"></i>
+        </div>
+        <span class="uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Photos</span>
+      </div>
+      <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 56px; font-weight: 300; line-height: 1;">{{ total_photos }}</p>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">Total uploaded photos</p>
+    </div>
+    <div class="admin-card p-8">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background-color: rgba(31,72,48,0.4);">
+          <i class="bi bi-link-45deg" style="font-size: 28px; color: var(--isp-gold);"></i>
+        </div>
+        <span class="uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Assignments</span>
+      </div>
+      <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 56px; font-weight: 300; line-height: 1;">{{ total_assignments }}</p>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">Photo-to-client links</p>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <h2 class="mb-5" style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Quick Actions</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+    <a href="/admin/clients" class="admin-card p-8 flex items-center justify-between">
+      <div class="flex items-center gap-5">
+        <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style="background-color: rgba(31,72,48,0.4);">
+          <i class="bi bi-people-fill" style="font-size: 26px; color: var(--isp-gold);"></i>
+        </div>
+        <div>
+          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 24px;">Manage Clients</p>
+          <p style="color: var(--isp-text-muted); font-size: 15px;">Create, view, and delete accounts</p>
+        </div>
+      </div>
+      <i class="bi bi-arrow-right" style="font-size: 24px; color: var(--isp-gold);"></i>
+    </a>
+    <a href="/admin/photos" class="admin-card p-8 flex items-center justify-between">
+      <div class="flex items-center gap-5">
+        <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style="background-color: rgba(31,72,48,0.4);">
+          <i class="bi bi-cloud-arrow-up" style="font-size: 26px; color: var(--isp-gold);"></i>
+        </div>
+        <div>
+          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 24px;">Manage Photos</p>
+          <p style="color: var(--isp-text-muted); font-size: 15px;">Upload and assign to clients</p>
+        </div>
+      </div>
+      <i class="bi bi-arrow-right" style="font-size: 24px; color: var(--isp-gold);"></i>
+    </a>
+  </div>
+
+  <!-- Recent photos -->
+  {% if recent_photos %}
+  <div>
+    <h2 class="mb-5" style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Recent Uploads</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {% for photo in recent_photos %}
+      <div class="relative overflow-hidden rounded-lg" style="aspect-ratio: 1/1;">
+        <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ photo.original_name }}" style="width: 100%; height: 100%; object-fit: cover;" />
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
