@@ -1,0 +1,84 @@
+<!-- Navbar -->
+<header id="navbar"
+  class="navbar-entrance fixed top-0 left-0 right-0 z-50 px-6 md:px-12 py-6"
+  style="transition: background-color 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease; border-bottom: 1px solid transparent;">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <!-- Logo -->
+    <button onclick="smoothScroll('#home')" class="focus:outline-none flex items-center gap-3">
+      <svg width="44" height="44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 10 H50 Q50 50 10 50 Z" fill="white" />
+        <path d="M50 10 H90 V50 Q50 50 50 10 Z" fill="#1F4830" />
+        <path d="M10 50 Q50 50 50 90 H10 Z" fill="#1F4830" />
+        <path d="M50 50 Q50 90 90 90 V50 Z" fill="white" />
+      </svg>
+      <div class="flex flex-col leading-none">
+        <span class="text-base font-medium tracking-widest uppercase"
+          style="font-family: var(--font-display); letter-spacing: 0.12em; color: var(--isp-cream);">
+          Ivan Soriano
+        </span>
+        <span class="text-sm tracking-widest uppercase"
+          style="font-family: var(--font-display); letter-spacing: 0.2em; color: var(--isp-text-muted);">
+          Photography
+        </span>
+      </div>
+    </button>
+
+    <!-- Desktop nav -->
+    <nav class="hidden md:flex items-center gap-10" id="desktop-nav">
+      <button onclick="smoothScroll('#home')"
+        class="text-sm uppercase tracking-widest opacity-70 hover:opacity-100 transition-opacity duration-200"
+        style="font-family: var(--font-body); color: var(--isp-cream); letter-spacing: 0.1em;">Home</button>
+      <button onclick="smoothScroll('#services')"
+        class="text-sm uppercase tracking-widest opacity-70 hover:opacity-100 transition-opacity duration-200"
+        style="font-family: var(--font-body); color: var(--isp-cream); letter-spacing: 0.1em;">Services</button>
+      <button onclick="smoothScroll('#portfolio')"
+        class="text-sm uppercase tracking-widest opacity-70 hover:opacity-100 transition-opacity duration-200"
+        style="font-family: var(--font-body); color: var(--isp-cream); letter-spacing: 0.1em;">Portfolio</button>
+      <button onclick="smoothScroll('#about')"
+        class="text-sm uppercase tracking-widest opacity-70 hover:opacity-100 transition-opacity duration-200"
+        style="font-family: var(--font-body); color: var(--isp-cream); letter-spacing: 0.1em;">About</button>
+      <button onclick="smoothScroll('#contact')"
+        class="text-sm uppercase tracking-widest opacity-70 hover:opacity-100 transition-opacity duration-200"
+        style="font-family: var(--font-body); color: var(--isp-cream); letter-spacing: 0.1em;">Contact</button>
+    </nav>
+
+    <!-- Desktop Book Now -->
+    <div class="hidden md:flex items-center gap-4">
+      <button onclick="smoothScroll('#contact')"
+        class="text-sm uppercase tracking-widest px-8 py-3.5 border rounded-none hover:bg-isp-gold hover:text-isp-bg transition-all duration-300"
+        style="font-family: var(--font-body); border-color: var(--isp-gold); color: var(--isp-gold); letter-spacing: 0.15em;">
+        Book Now
+      </button>
+    </div>
+
+    <!-- Mobile menu button -->
+    <button id="mobile-menu-btn" class="md:hidden" style="color: var(--isp-cream);" onclick="toggleMobileMenu()">
+      <i data-lucide="menu" id="menu-icon" style="width: 26px; height: 26px;"></i>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile drawer -->
+<div id="mobile-menu" class="fixed inset-0 z-40 flex flex-col items-center justify-center gap-8 md:hidden"
+  style="background-color: var(--isp-bg-card); display: none;">
+  <button onclick="smoothScroll('#home'); closeMobileMenu();"
+    class="text-3xl font-light"
+    style="font-family: var(--font-display); color: var(--isp-cream); letter-spacing: 0.08em;">Home</button>
+  <button onclick="smoothScroll('#services'); closeMobileMenu();"
+    class="text-3xl font-light"
+    style="font-family: var(--font-display); color: var(--isp-cream); letter-spacing: 0.08em;">Services</button>
+  <button onclick="smoothScroll('#portfolio'); closeMobileMenu();"
+    class="text-3xl font-light"
+    style="font-family: var(--font-display); color: var(--isp-cream); letter-spacing: 0.08em;">Portfolio</button>
+  <button onclick="smoothScroll('#about'); closeMobileMenu();"
+    class="text-3xl font-light"
+    style="font-family: var(--font-display); color: var(--isp-cream); letter-spacing: 0.08em;">About</button>
+  <button onclick="smoothScroll('#contact'); closeMobileMenu();"
+    class="text-3xl font-light"
+    style="font-family: var(--font-display); color: var(--isp-cream); letter-spacing: 0.08em;">Contact</button>
+  <button onclick="smoothScroll('#contact'); closeMobileMenu();"
+    class="text-sm uppercase tracking-widest px-8 py-3 border mt-4 hover:bg-isp-gold hover:text-isp-bg transition-all duration-300"
+    style="font-family: var(--font-body); border-color: var(--isp-gold); color: var(--isp-gold); letter-spacing: 0.15em;">
+    Book a Session
+  </button>
+</div>

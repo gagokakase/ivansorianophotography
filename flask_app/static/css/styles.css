@@ -1,0 +1,308 @@
+/* ===== Fonts ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap');
+
+/* ===== Theme Tokens ===== */
+:root {
+  --isp-green: #1F4830;
+  --isp-green-light: #2D5A3D;
+  --isp-green-dark: #152E20;
+  --isp-cream: #F2EDE4;
+  --isp-gold: #C8A96E;
+  --isp-bg: #080C09;
+  --isp-bg-card: #111714;
+  --isp-bg-section: #0D120F;
+  --isp-text-muted: #9DAD9F;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+/* ===== Base ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background-color: var(--isp-bg);
+  font-family: var(--font-body);
+  color: var(--isp-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--isp-bg); }
+::-webkit-scrollbar-thumb { background: rgba(200,169,110,0.2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(200,169,110,0.4); }
+
+/* ===== Scroll Reveal Animations (replacing Framer Motion) ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-x-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+}
+.reveal-x-left.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-x-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+}
+.reveal-x-right.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.reveal-scale.revealed {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delays */
+.delay-1 { transition-delay: 0.15s; }
+.delay-2 { transition-delay: 0.3s; }
+.delay-3 { transition-delay: 0.45s; }
+.delay-4 { transition-delay: 0.6s; }
+.delay-5 { transition-delay: 0.8s; }
+.delay-6 { transition-delay: 1.0s; }
+
+/* ===== Hero Entrance Animations ===== */
+@keyframes growWidth {
+  from { width: 0; }
+  to { width: 64px; }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUpLarge {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.hero-accent-line {
+  animation: growWidth 0.8s ease-out 0.3s both;
+}
+.hero-eyebrow {
+  animation: fadeUp 0.6s ease-out 0.4s both;
+}
+.hero-title {
+  animation: fadeUpLarge 0.9s ease-out 0.5s both;
+}
+.hero-subtitle {
+  animation: fadeUp 0.6s ease-out 0.8s both;
+}
+.hero-cta {
+  animation: fadeUp 0.6s ease-out 1.0s both;
+}
+.hero-scroll-indicator {
+  animation: fadeIn 0.6s ease-out 1.4s both;
+}
+.scroll-bounce {
+  animation: bounceDown 1.5s ease-in-out infinite;
+}
+
+/* ===== Navbar Entrance ===== */
+@keyframes slideDown {
+  from { transform: translateY(-80px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.navbar-entrance {
+  animation: slideDown 0.7s ease-out both;
+}
+
+/* ===== Mobile Menu ===== */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+.mobile-menu-open {
+  animation: slideInRight 0.35s ease-in-out both;
+}
+.mobile-menu-close {
+  animation: slideOutRight 0.35s ease-in-out both;
+}
+
+/* ===== Lightbox ===== */
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lightboxFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes lightboxZoomIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes lightboxZoomOut {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.9); opacity: 0; }
+}
+.lightbox-overlay {
+  animation: lightboxFadeIn 0.3s ease-out both;
+}
+.lightbox-overlay.closing {
+  animation: lightboxFadeOut 0.3s ease-out both;
+}
+.lightbox-content {
+  animation: lightboxZoomIn 0.35s ease-out both;
+}
+.lightbox-content.closing {
+  animation: lightboxZoomOut 0.35s ease-out both;
+}
+
+/* ===== Toast (replacing sonner) ===== */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(20px); }
+}
+.toast {
+  animation: toastIn 0.3s ease-out both;
+}
+.toast.closing {
+  animation: toastOut 0.3s ease-out both;
+}
+
+/* ===== Portfolio Masonry (CSS columns, replacing react-responsive-masonry) ===== */
+.masonry-grid {
+  column-count: 1;
+  column-gap: 12px;
+}
+@media (min-width: 640px) {
+  .masonry-grid { column-count: 2; }
+}
+@media (min-width: 1024px) {
+  .masonry-grid { column-count: 3; }
+}
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+
+/* ===== Portfolio item exit animation ===== */
+@keyframes portfolioFadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.97); }
+}
+.portfolio-item.hide {
+  animation: portfolioFadeOut 0.3s ease-out both;
+}
+
+/* ===== Form input focus ===== */
+.form-input {
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(122,140,126,0.35);
+  color: var(--isp-cream);
+  font-family: var(--font-body);
+  font-size: 16px;
+  outline: none;
+  width: 100%;
+  padding: 14px 0;
+  transition: border-color 0.3s;
+}
+.form-input:focus {
+  border-bottom-color: var(--isp-gold);
+}
+.form-input.error {
+  border-bottom-color: rgba(212,24,61,0.7);
+}
+.form-label {
+  font-family: var(--font-body);
+  color: var(--isp-text-muted);
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* ===== Service card hover accent ===== */
+.service-accent {
+  width: 0;
+  transition: width 0.5s ease;
+}
+.service-card:hover .service-accent {
+  width: 100;
+}
+.service-top-border {
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+.service-card:hover .service-top-border {
+  opacity: 0;
+}
+
+/* ===== Tag hover ===== */
+.service-tag {
+  border-color: rgba(122,140,126,0.25);
+  color: var(--isp-text-muted);
+  transition: border-color 0.3s, color 0.3s;
+}
+.service-card:hover .service-tag {
+  border-color: rgba(200,169,110,0.3);
+  color: var(--isp-cream);
+}
+
+/* ===== Portfolio hover overlay ===== */
+.portfolio-overlay {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.portfolio-item:hover .portfolio-overlay {
+  opacity: 1;
+}
+.portfolio-img {
+  transition: transform 0.7s ease;
+}
+.portfolio-item:hover .portfolio-img {
+  transform: scale(1.05);
+}
+
+/* ===== Testimonial card hover ===== */
+.testimonial-card {
+  border-color: rgba(200,169,110,0.1);
+  transition: border-color 0.4s ease;
+}
+.testimonial-card:hover {
+  border-color: rgba(200,169,110,0.3);
+}
+
+/* ===== Smooth scroll ===== */
+html {
+  scroll-behavior: smooth;
+}

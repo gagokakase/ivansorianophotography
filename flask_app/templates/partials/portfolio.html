@@ -1,0 +1,148 @@
+<!-- Portfolio Section -->
+<section id="portfolio" class="py-28 px-6 md:px-12" style="background-color: var(--isp-bg-section);">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="reveal flex flex-col md:flex-row md:items-end justify-between mb-14 gap-8">
+      <div>
+        <div class="flex items-center gap-4 mb-4">
+          <div style="width: 32px; height: 1px; background-color: var(--isp-gold);"></div>
+          <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Portfolio</span>
+        </div>
+        <h2 class="text-5xl md:text-6xl"
+          style="font-family: var(--font-display); color: var(--isp-cream); font-weight: 300; line-height: 1.1;">
+          The Work
+        </h2>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="flex gap-1" id="portfolio-filters">
+        <button onclick="filterPortfolio('All', this)"
+          class="portfolio-filter border px-5 py-2 uppercase tracking-wider transition-all duration-300 hover:border-isp-gold hover:text-isp-cream active"
+          style="font-family: var(--font-body); letter-spacing: 0.15em; font-size: 13px; color: var(--isp-bg); background-color: var(--isp-gold); border-color: var(--isp-gold);">All</button>
+        <button onclick="filterPortfolio('Wedding', this)"
+          class="portfolio-filter border px-5 py-2 uppercase tracking-wider transition-all duration-300 hover:border-isp-gold hover:text-isp-cream"
+          style="font-family: var(--font-body); letter-spacing: 0.15em; font-size: 13px; color: var(--isp-text-muted); background-color: transparent; border-color: rgba(122,140,126,0.3);">Wedding</button>
+        <button onclick="filterPortfolio('Portrait', this)"
+          class="portfolio-filter border px-5 py-2 uppercase tracking-wider transition-all duration-300 hover:border-isp-gold hover:text-isp-cream"
+          style="font-family: var(--font-body); letter-spacing: 0.15em; font-size: 13px; color: var(--isp-text-muted); background-color: transparent; border-color: rgba(122,140,126,0.3);">Portrait</button>
+      </div>
+    </div>
+
+    <!-- Masonry grid -->
+    <div class="masonry-grid" id="portfolio-grid">
+      <!-- Photo 1 -->
+      <div class="masonry-item portfolio-item reveal-scale relative group cursor-pointer overflow-hidden"
+        data-category="Wedding" data-src="{{ url_for('static', filename='img/image-1.png') }}" data-alt="Wedding at San Agustin Church, Intramuros" data-title="Mark &amp; Dianne" data-location="Intramuros, Manila">
+        <img src="{{ url_for('static', filename='img/image-1.png') }}"
+          alt="Wedding at San Agustin Church, Intramuros"
+          class="portfolio-img w-full block" style="display: block;" />
+        <div class="portfolio-overlay absolute inset-0 flex flex-col justify-end p-6"
+          style="background: linear-gradient(to top, rgba(8,12,9,0.88) 0%, rgba(8,12,9,0.3) 50%, transparent 100%);">
+          <div class="flex items-end justify-between">
+            <div>
+              <p class="uppercase mb-1" style="font-family: var(--font-body); color: var(--isp-gold); font-size: 10px; letter-spacing: 0.2em;">Wedding</p>
+              <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 20px; font-weight: 400;">Mark &amp; Dianne</p>
+              <p style="font-family: var(--font-body); color: rgba(242,237,228,0.6); font-size: 12px;">Intramuros, Manila</p>
+            </div>
+            <div class="w-9 h-9 flex items-center justify-center flex-shrink-0"
+              style="border: 1px solid rgba(200,169,110,0.5); color: var(--isp-gold);">
+              <i data-lucide="zoom-in" style="width: 14px; height: 14px;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo 2 -->
+      <div class="masonry-item portfolio-item reveal-scale delay-1 relative group cursor-pointer overflow-hidden"
+        data-category="Portrait" data-src="{{ url_for('static', filename='img/image-2.png') }}" data-alt="Portrait session — dramatic red lighting" data-title="Leorah" data-location="Studio">
+        <img src="{{ url_for('static', filename='img/image-2.png') }}"
+          alt="Portrait session — dramatic red lighting"
+          class="portfolio-img w-full block" style="display: block;" />
+        <div class="portfolio-overlay absolute inset-0 flex flex-col justify-end p-6"
+          style="background: linear-gradient(to top, rgba(8,12,9,0.88) 0%, rgba(8,12,9,0.3) 50%, transparent 100%);">
+          <div class="flex items-end justify-between">
+            <div>
+              <p class="uppercase mb-1" style="font-family: var(--font-body); color: var(--isp-gold); font-size: 10px; letter-spacing: 0.2em;">Portrait</p>
+              <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 20px; font-weight: 400;">Leorah</p>
+              <p style="font-family: var(--font-body); color: rgba(242,237,228,0.6); font-size: 12px;">Studio</p>
+            </div>
+            <div class="w-9 h-9 flex items-center justify-center flex-shrink-0"
+              style="border: 1px solid rgba(200,169,110,0.5); color: var(--isp-gold);">
+              <i data-lucide="zoom-in" style="width: 14px; height: 14px;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo 3 -->
+      <div class="masonry-item portfolio-item reveal-scale delay-2 relative group cursor-pointer overflow-hidden"
+        data-category="Wedding" data-src="{{ url_for('static', filename='img/image-3.png') }}" data-alt="Groom at the altar inside ornate church" data-title="Mark &amp; Dianne" data-location="San Agustin Church">
+        <img src="{{ url_for('static', filename='img/image-3.png') }}"
+          alt="Groom at the altar inside ornate church"
+          class="portfolio-img w-full block" style="display: block;" />
+        <div class="portfolio-overlay absolute inset-0 flex flex-col justify-end p-6"
+          style="background: linear-gradient(to top, rgba(8,12,9,0.88) 0%, rgba(8,12,9,0.3) 50%, transparent 100%);">
+          <div class="flex items-end justify-between">
+            <div>
+              <p class="uppercase mb-1" style="font-family: var(--font-body); color: var(--isp-gold); font-size: 10px; letter-spacing: 0.2em;">Wedding</p>
+              <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 20px; font-weight: 400;">Mark &amp; Dianne</p>
+              <p style="font-family: var(--font-body); color: rgba(242,237,228,0.6); font-size: 12px;">San Agustin Church</p>
+            </div>
+            <div class="w-9 h-9 flex items-center justify-center flex-shrink-0"
+              style="border: 1px solid rgba(200,169,110,0.5); color: var(--isp-gold);">
+              <i data-lucide="zoom-in" style="width: 14px; height: 14px;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo 4 -->
+      <div class="masonry-item portfolio-item reveal-scale delay-3 relative group cursor-pointer overflow-hidden"
+        data-category="Wedding" data-src="{{ url_for('static', filename='img/image-4.png') }}" data-alt="Bride at the altar, joyful moment" data-title="Mark &amp; Dianne" data-location="San Agustin Church">
+        <img src="{{ url_for('static', filename='img/image-4.png') }}"
+          alt="Bride at the altar, joyful moment"
+          class="portfolio-img w-full block" style="display: block;" />
+        <div class="portfolio-overlay absolute inset-0 flex flex-col justify-end p-6"
+          style="background: linear-gradient(to top, rgba(8,12,9,0.88) 0%, rgba(8,12,9,0.3) 50%, transparent 100%);">
+          <div class="flex items-end justify-between">
+            <div>
+              <p class="uppercase mb-1" style="font-family: var(--font-body); color: var(--isp-gold); font-size: 10px; letter-spacing: 0.2em;">Wedding</p>
+              <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 20px; font-weight: 400;">Mark &amp; Dianne</p>
+              <p style="font-family: var(--font-body); color: rgba(242,237,228,0.6); font-size: 12px;">San Agustin Church</p>
+            </div>
+            <div class="w-9 h-9 flex items-center justify-center flex-shrink-0"
+              style="border: 1px solid rgba(200,169,110,0.5); color: var(--isp-gold);">
+              <i data-lucide="zoom-in" style="width: 14px; height: 14px;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="reveal mt-14 flex justify-center">
+      <a href="https://www.facebook.com/IvanSorianoPhotography" target="_blank" rel="noopener noreferrer"
+        class="border px-10 py-4 uppercase tracking-widest hover:border-isp-gold hover:text-isp-gold transition-all duration-300"
+        style="font-family: var(--font-body); color: var(--isp-cream); border-color: rgba(242,237,228,0.2); letter-spacing: 0.2em; font-size: 14px;">
+        View Full Gallery on Facebook
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Lightbox -->
+<div id="lightbox" class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
+  style="background-color: rgba(8,12,9,0.95); display: none;">
+  <div class="lightbox-content relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center" id="lightbox-content">
+    <img id="lightbox-img" src="" alt="" class="max-w-full max-h-[80vh] object-contain" />
+    <button id="lightbox-close"
+      class="absolute top-3 right-3 w-10 h-10 flex items-center justify-center hover:border-isp-gold transition-colors"
+      style="background-color: rgba(8,12,9,0.8); border: 1px solid rgba(200,169,110,0.3); color: var(--isp-cream);">
+      <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+    </button>
+    <div class="absolute bottom-3 left-0 right-0 text-center">
+      <p id="lightbox-title" style="font-family: var(--font-display); color: var(--isp-cream); font-size: 22px;"></p>
+      <p id="lightbox-location" class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); font-size: 14px; letter-spacing: 0.15em;"></p>
+    </div>
+  </div>
+</div>
