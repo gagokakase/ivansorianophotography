@@ -27,54 +27,48 @@
 
     <!-- Album mosaic grid -->
     <div class="album-collage" id="portfolio-grid">
-      <!-- Featured: large top span -->
+      <!-- Mark (left, tall) -->
       <div class="album-tile album-featured portfolio-item reveal-scale"
-        data-category="Wedding" data-src="{{ url_for('static', filename='img/image-1.png') }}" data-alt="Wedding at San Agustin Church, Intramuros" data-title="Mark &amp; Dianne" data-location="Intramuros, Manila">
-        <img src="{{ url_for('static', filename='img/image-1.png') }}" alt="Wedding at San Agustin Church" />
-        <div class="portfolio-overlay absolute inset-0 flex flex-col justify-end p-6"
-          style="background: linear-gradient(to top, rgba(8,12,9,0.88) 0%, rgba(8,12,9,0.3) 50%, transparent 100%);">
-          <p class="uppercase mb-1" style="font-family: var(--font-body); color: var(--isp-gold); font-size: 11px; letter-spacing: 0.2em;">Wedding</p>
-          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 22px; font-weight: 400;">Mark &amp; Dianne</p>
-          <p style="font-family: var(--font-body); color: rgba(242,237,228,0.7); font-size: 13px;">Intramuros, Manila</p>
+        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-bride-portrait.jpg') }}" data-alt="Mark" data-title="Mark" data-location="Bridal Portrait">
+        <img src="{{ url_for('static', filename='img/wedding-bride-portrait.jpg') }}" alt="Mark" />
+        <div class="portfolio-overlay absolute inset-0 flex items-end p-6"
+          style="background: linear-gradient(to top, rgba(8,12,9,0.85) 0%, transparent 60%);">
+          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 26px; font-weight: 400;">Mark</p>
+        </div>
+      </div>
+
+      <!-- Dianne (right, tall) -->
+      <div class="album-tile album-dianne portfolio-item reveal-scale delay-1"
+        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-altar.jpg') }}" data-alt="Dianne" data-title="Dianne" data-location="Ceremony">
+        <img src="{{ url_for('static', filename='img/wedding-altar.jpg') }}" alt="Dianne" />
+        <div class="portfolio-overlay absolute inset-0 flex items-end p-6"
+          style="background: linear-gradient(to top, rgba(8,12,9,0.85) 0%, transparent 60%);">
+          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 26px; font-weight: 400;">Dianne</p>
         </div>
       </div>
 
       <!-- Groom getting ready -->
-      <div class="album-tile album-a portfolio-item reveal-scale delay-1"
-        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-groom.jpg') }}" data-alt="Groom getting ready" data-title="Mark &amp; Dianne" data-location="Getting Ready">
+      <div class="album-tile album-a portfolio-item reveal-scale delay-2"
+        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-groom.jpg') }}" data-alt="Groom getting ready" data-title="Mark" data-location="Getting Ready">
         <img src="{{ url_for('static', filename='img/wedding-groom.jpg') }}" alt="Groom getting ready" />
       </div>
 
-      <!-- Wedding rings -->
-      <div class="album-tile album-b portfolio-item reveal-scale delay-1"
-        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-rings.jpg') }}" data-alt="Wedding rings detail" data-title="Mark &amp; Dianne" data-location="Rings">
+      <!-- Wedding rings (between groom and bride) -->
+      <div class="album-tile album-rings portfolio-item reveal-scale delay-2"
+        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-rings.jpg') }}" data-alt="Wedding rings" data-title="Mark &amp; Dianne" data-location="Rings">
         <img src="{{ url_for('static', filename='img/wedding-rings.jpg') }}" alt="Wedding rings" />
       </div>
 
-      <!-- Portrait -->
-      <div class="album-tile album-e portfolio-item reveal-scale delay-3"
-        data-category="Portrait" data-src="{{ url_for('static', filename='img/image-2.png') }}" data-alt="Portrait session — dramatic red lighting" data-title="Leorah" data-location="Studio">
-        <img src="{{ url_for('static', filename='img/image-2.png') }}" alt="Portrait session" />
+      <!-- Bride getting ready -->
+      <div class="album-tile album-b portfolio-item reveal-scale delay-3"
+        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-bride.jpg') }}" data-alt="Bride getting ready" data-title="Dianne" data-location="Getting Ready">
+        <img src="{{ url_for('static', filename='img/wedding-bride.jpg') }}" alt="Bride getting ready" />
       </div>
-    </div>
 
-    <!-- Side-by-side pair -->
-    <div class="reveal mt-8 grid grid-cols-2 gap-0" id="portfolio-pair">
-      <div class="album-tile portfolio-item relative overflow-hidden"
-        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-bride-portrait.jpg') }}" data-alt="Bride portrait" data-title="Dianne" data-location="Bridal Portrait">
-        <img src="{{ url_for('static', filename='img/wedding-bride-portrait.jpg') }}" alt="Bride portrait" style="width: 100%; height: 100%; object-fit: cover; display: block; aspect-ratio: 4/5;" />
-        <div class="portfolio-overlay absolute inset-0 flex items-end p-5"
-          style="background: linear-gradient(to top, rgba(8,12,9,0.85) 0%, transparent 60%);">
-          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 22px; font-weight: 400;">Mark</p>
-        </div>
-      </div>
-      <div class="album-tile portfolio-item relative overflow-hidden"
-        data-category="Wedding" data-src="{{ url_for('static', filename='img/wedding-altar.jpg') }}" data-alt="Couple at the altar" data-title="Mark &amp; Dianne" data-location="Ceremony">
-        <img src="{{ url_for('static', filename='img/wedding-altar.jpg') }}" alt="Couple at the altar" style="width: 100%; height: 100%; object-fit: cover; display: block; aspect-ratio: 4/5;" />
-        <div class="portfolio-overlay absolute inset-0 flex items-end p-5"
-          style="background: linear-gradient(to top, rgba(8,12,9,0.85) 0%, transparent 60%);">
-          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 22px; font-weight: 400;">Dianne</p>
-        </div>
+      <!-- Portrait (only shows on Portrait filter) -->
+      <div class="album-tile album-portrait portfolio-item reveal-scale delay-3"
+        data-category="Portrait" data-src="{{ url_for('static', filename='img/image-2.png') }}" data-alt="Portrait session" data-title="Leorah" data-location="Studio">
+        <img src="{{ url_for('static', filename='img/image-2.png') }}" alt="Portrait session" />
       </div>
     </div>
 

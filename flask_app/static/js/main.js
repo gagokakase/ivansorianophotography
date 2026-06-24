@@ -76,7 +76,6 @@ function closeMobileMenu() {
 function filterPortfolio(category, btn) {
   var items = document.querySelectorAll(".portfolio-item");
   var buttons = document.querySelectorAll(".portfolio-filter");
-
   buttons.forEach(function (b) {
     b.classList.remove("active");
     b.style.color = "var(--isp-text-muted)";
@@ -89,13 +88,17 @@ function filterPortfolio(category, btn) {
   btn.style.backgroundColor = "var(--isp-gold)";
   btn.style.borderColor = "var(--isp-gold)";
 
+  var grid = document.getElementById("portfolio-grid");
+  if (!grid) return;
+
+  // Remove filter classes
+  grid.classList.remove("filter-wedding", "filter-portrait");
+
   items.forEach(function (item) {
     var cat = item.getAttribute("data-category");
     if (category === "All" || cat === category) {
       item.style.display = "";
       item.classList.remove("hide");
-      item.style.gridColumn = "";
-      item.style.gridRow = "";
     } else {
       item.classList.add("hide");
       setTimeout(function () {
@@ -106,27 +109,21 @@ function filterPortfolio(category, btn) {
     }
   });
 
-  // Re-flow grid: when not "All", make visible items fill naturally
-  if (category !== "All") {
-    var visible = [];
-    items.forEach(function (item) {
-      if (item.style.display !== "none" && !item.classList.contains("hide")) {
-        visible.push(item);
-      }
-    });
-    // Reset grid positions for visible items
-    visible.forEach(function (item, i) {
-      item.style.gridColumn = "";
-      item.style.gridRow = "";
-    });
-    // Make grid auto-flow dense to fill gaps
-    var grid = document.getElementById("portfolio-grid");
-    if (grid) grid.style.gridAutoFlow = "dense";
-  } else {
-    var grid = document.getElementById("portfolio-grid");
-    if (grid) grid.style.gridAutoFlow = "";
+  // Add filter class for CSS-based show/hide
+  if (category === "Wedding") {
+    grid.classList.add("filter-wedding");
+  } else if (category === "Portrait") {
+    grid.classList.add("filter-portrait");
   }
 }
+
+// Auto-apply default Wedding filter on load
+(function () {
+  var defaultBtn = document.querySelector(".portfolio-filter.active");
+  if (defaultBtn) {
+    filterPortfolio("Wedding", defaultBtn);
+  }
+})();
 
 // ---- Lightbox ----
 function openLightbox(src, alt, title, location) {
