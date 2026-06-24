@@ -458,9 +458,35 @@ function showToast(message) {
   muteBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     video.muted = !video.muted;
-    muteIcon.setAttribute("data-lucide", video.muted ? "volume-x" : "volume-2");
+    if (video.muted) {
+      muteIcon.setAttribute("data-lucide", "volume-x");
+    } else {
+      var vol = video.volume;
+      muteIcon.setAttribute("data-lucide", vol > 0.5 ? "volume-2" : (vol > 0 ? "volume-1" : "volume-x"));
+    }
     lucide.createIcons();
   });
+
+  // Volume slider
+  var volSlider = document.getElementById("video-volume-slider");
+  if (volSlider) {
+    volSlider.addEventListener("input", function (e) {
+      e.stopPropagation();
+      video.volume = parseFloat(this.value);
+      video.muted = video.volume === 0;
+      if (video.volume === 0) {
+        muteIcon.setAttribute("data-lucide", "volume-x");
+      } else if (video.volume > 0.5) {
+        muteIcon.setAttribute("data-lucide", "volume-2");
+      } else {
+        muteIcon.setAttribute("data-lucide", "volume-1");
+      }
+      lucide.createIcons();
+    });
+    volSlider.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+  }
 
   // Fullscreen
   fsBtn.addEventListener("click", function (e) {

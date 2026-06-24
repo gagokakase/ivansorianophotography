@@ -56,6 +56,10 @@
           </div>
           <!-- Duration -->
           <span id="video-duration" class="flex-shrink-0" style="font-family: var(--font-body); color: var(--isp-cream); font-size: 13px; min-width: 40px; text-align: center;">0:00</span>
+          <!-- Volume slider -->
+          <input type="range" id="video-volume-slider" min="0" max="1" step="0.05" value="1"
+            class="flex-shrink-0 cursor-pointer"
+            style="width: 80px; accent-color: var(--isp-gold); height: 4px;" />
           <!-- Mute -->
           <button id="video-mute-btn" class="flex-shrink-0" style="color: var(--isp-cream); background: none; border: none; cursor: pointer;">
             <i data-lucide="volume-2" id="video-mute-icon" style="width: 20px; height: 20px;"></i>
