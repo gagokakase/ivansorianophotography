@@ -108,10 +108,10 @@
 </head>
 <body style="background-color: var(--isp-bg); font-family: var(--font-body); min-height: 100vh;">
 
-  <div class="flex min-h-screen">
+  <div class="flex min-h-screen items-stretch">
 
     <!-- Sidebar -->
-    <aside class="fixed lg:sticky top-0 left-0 h-screen w-72 z-50 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0"
+    <aside class="fixed lg:sticky inset-y-0 lg:top-0 left-0 w-72 h-screen z-50 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0"
       id="admin-sidebar"
       style="background-color: var(--isp-bg-card); border-right: 1px solid rgba(200,169,110,0.12);">
 
@@ -169,7 +169,7 @@
     <div id="sidebar-overlay" class="fixed inset-0 z-40 lg:hidden" style="background-color: rgba(0,0,0,0.6); display: none;" onclick="toggleSidebar()"></div>
 
     <!-- Main content -->
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 min-h-screen">
 
       <!-- Top nav bar -->
       <header class="sticky top-0 z-30 flex items-center justify-between px-5 py-4"
