@@ -115,7 +115,7 @@ def register():
 
 @auth_bp.route("/auth/facebook")
 def facebook_login():
-    redirect_uri = "http://localhost:5000/auth/facebook/callback"
+    redirect_uri = url_for("auth.facebook_callback", _external=True)
     state = secrets.token_urlsafe(16)
     fb_app_id = current_app.config["FB_APP_ID"]
     auth_url = (
@@ -137,7 +137,7 @@ def facebook_callback():
         flash("Facebook authorization failed.", "error")
         return redirect(url_for("auth.register"))
 
-    redirect_uri = "http://localhost:5000/auth/facebook/callback"
+    redirect_uri = url_for("auth.facebook_callback", _external=True)
     fb_app_id = current_app.config["FB_APP_ID"]
     fb_app_secret = current_app.config["FB_APP_SECRET"]
 
@@ -193,7 +193,7 @@ def facebook_callback():
 
 @auth_bp.route("/auth/google")
 def google_login():
-    redirect_uri = "http://localhost:5000/auth/google/callback"
+    redirect_uri = url_for("auth.google_callback", _external=True)
     state = secrets.token_urlsafe(16)
     client_id = current_app.config["GOOGLE_CLIENT_ID"]
     auth_url = (
@@ -216,7 +216,7 @@ def google_callback():
         flash("Google authorization failed.", "error")
         return redirect(url_for("auth.register"))
 
-    redirect_uri = "http://localhost:5000/auth/google/callback"
+    redirect_uri = url_for("auth.google_callback", _external=True)
     client_id = current_app.config["GOOGLE_CLIENT_ID"]
     client_secret = current_app.config["GOOGLE_CLIENT_SECRET"]
 
