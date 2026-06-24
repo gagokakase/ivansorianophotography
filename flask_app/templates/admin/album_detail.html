@@ -45,6 +45,7 @@
   <!-- Drag & drop upload zone -->
   <div id="drop-zone" class="mb-10 rounded-xl transition-all"
     style="border: 2px dashed rgba(200,169,110,0.25); background-color: rgba(17,23,20,0.5); padding: 48px 24px; text-align: center; cursor: pointer;"
+    ondragenter="handleDragEnter(event)"
     ondragover="handleDragOver(event)"
     ondragleave="handleDragLeave(event)"
     ondrop="handleDrop(event)"
@@ -312,28 +313,44 @@ var albumId = {{ album.id }};
 
 // ---- Drag & drop upload ----
 
-function handleDragOver(e) {
+var dragCounter = 0;
+
+function handleDragEnter(e) {
   e.preventDefault();
   e.stopPropagation();
+  dragCounter++;
   document.getElementById('drop-zone').style.borderColor = 'var(--isp-gold)';
   document.getElementById('drop-zone').style.backgroundColor = 'rgba(200,169,110,0.05)';
   document.getElementById('drop-zone-content').style.display = 'none';
   document.getElementById('drop-zone-active').style.display = 'block';
 }
 
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
 function handleDragLeave(e) {
   e.preventDefault();
   e.stopPropagation();
-  document.getElementById('drop-zone').style.borderColor = 'rgba(200,169,110,0.25)';
-  document.getElementById('drop-zone').style.backgroundColor = 'rgba(17,23,20,0.5)';
-  document.getElementById('drop-zone-content').style.display = 'block';
-  document.getElementById('drop-zone-active').style.display = 'none';
+  dragCounter--;
+  if (dragCounter <= 0) {
+    dragCounter = 0;
+    document.getElementById('drop-zone').style.borderColor = 'rgba(200,169,110,0.25)';
+    document.getElementById('drop-zone').style.backgroundColor = 'rgba(17,23,20,0.5)';
+    document.getElementById('drop-zone-content').style.display = 'block';
+    document.getElementById('drop-zone-active').style.display = 'none';
+  }
 }
 
 function handleDrop(e) {
   e.preventDefault();
   e.stopPropagation();
-  handleDragLeave(e);
+  dragCounter = 0;
+  document.getElementById('drop-zone').style.borderColor = 'rgba(200,169,110,0.25)';
+  document.getElementById('drop-zone').style.backgroundColor = 'rgba(17,23,20,0.5)';
+  document.getElementById('drop-zone-content').style.display = 'block';
+  document.getElementById('drop-zone-active').style.display = 'none';
   var files = e.dataTransfer.files;
   if (files.length > 0) {
     uploadFiles(files);
@@ -354,7 +371,7 @@ function uploadFiles(files) {
   for (var i = 0; i < files.length; i++) {
     var f = files[i];
     var ext = f.name.split('.').pop().toLowerCase();
-    if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp') {
+    if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp' || ext === 'gif' || ext === 'bmp' || ext === 'tiff') {
       formData.append('files', f);
       validCount++;
     }
@@ -371,6 +388,7 @@ function uploadFiles(files) {
 
   var xhr = new XMLHttpRequest();
   xhr.open('POST', '/admin/albums/' + albumId + '/upload');
+  xhr.setRequestHeader('X-CSRFToken', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
   xhr.upload.onprogress = function(e) {
     if (e.lengthComputable) {
