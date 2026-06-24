@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, abort, redirect, url_for
 from flask_login import login_required, current_user
-from models import Photo, PhotoAssignment, Album, AlbumAssignment
+from models import Album, AlbumAssignment
 
 client_bp = Blueprint("client", __name__, url_prefix="/client")
 
@@ -11,13 +11,10 @@ def gallery():
     if current_user.is_admin:
         return redirect(url_for("admin.dashboard"))
 
-    assignments = PhotoAssignment.query.filter_by(client_id=current_user.id).all()
-    photos = [a.photo for a in assignments]
-
     album_assignments = AlbumAssignment.query.filter_by(client_id=current_user.id).all()
     albums = [a.album for a in album_assignments]
 
-    return render_template("client/gallery.html", photos=photos, albums=albums)
+    return render_template("client/gallery.html", albums=albums)
 
 
 @client_bp.route("/album/<int:album_id>")

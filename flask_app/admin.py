@@ -28,12 +28,12 @@ def allowed_file(filename):
 @admin_required
 def dashboard():
     total_clients = User.query.filter_by(role="client").count()
-    total_photos = Photo.query.count()
-    total_assignments = PhotoAssignment.query.count()
+    total_albums = Album.query.count()
+    total_assignments = AlbumAssignment.query.count()
     recent_photos = Photo.query.order_by(Photo.uploaded_at.desc()).limit(6).all()
     return render_template("admin/dashboard.html",
                            total_clients=total_clients,
-                           total_photos=total_photos,
+                           total_albums=total_albums,
                            total_assignments=total_assignments,
                            recent_photos=recent_photos)
 
@@ -121,9 +121,7 @@ def delete_client(client_id):
 @admin_bp.route("/photos")
 @admin_required
 def photos():
-    all_photos = Photo.query.order_by(Photo.uploaded_at.desc()).all()
-    all_clients = User.query.filter_by(role="client").order_by(User.name).all()
-    return render_template("admin/photos.html", photos=all_photos, clients=all_clients)
+    return redirect(url_for("admin.albums"))
 
 
 @admin_bp.route("/photos/upload", methods=["POST"])

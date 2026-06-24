@@ -10,7 +10,7 @@
       <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Overview</span>
     </div>
     <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 48px; font-weight: 300; line-height: 1.1;">Dashboard</h1>
-    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 17px;">Manage your clients and photos from here.</p>
+    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 17px;">Manage your clients and albums from here.</p>
   </div>
 
   <!-- Stats -->
@@ -28,12 +28,12 @@
     <div class="admin-card p-8">
       <div class="flex items-center justify-between mb-4">
         <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background-color: rgba(31,72,48,0.4);">
-          <i class="bi bi-images" style="font-size: 28px; color: var(--isp-gold);"></i>
+          <i class="bi bi-collection" style="font-size: 28px; color: var(--isp-gold);"></i>
         </div>
-        <span class="uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Photos</span>
+        <span class="uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Albums</span>
       </div>
-      <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 56px; font-weight: 300; line-height: 1;">{{ total_photos }}</p>
-      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">Total uploaded photos</p>
+      <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 56px; font-weight: 300; line-height: 1;">{{ total_albums }}</p>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">Photo collections</p>
     </div>
     <div class="admin-card p-8">
       <div class="flex items-center justify-between mb-4">
@@ -43,7 +43,7 @@
         <span class="uppercase" style="font-size: 14px; letter-spacing: 0.15em; color: var(--isp-text-muted);">Assignments</span>
       </div>
       <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 56px; font-weight: 300; line-height: 1;">{{ total_assignments }}</p>
-      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">Photo-to-client links</p>
+      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 14px;">Album-to-client links</p>
     </div>
   </div>
 
@@ -62,14 +62,14 @@
       </div>
       <i class="bi bi-arrow-right" style="font-size: 24px; color: var(--isp-gold);"></i>
     </a>
-    <a href="/admin/photos" class="admin-card p-8 flex items-center justify-between">
+    <a href="/admin/albums" class="admin-card p-8 flex items-center justify-between">
       <div class="flex items-center gap-5">
         <div class="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style="background-color: rgba(31,72,48,0.4);">
-          <i class="bi bi-cloud-arrow-up" style="font-size: 26px; color: var(--isp-gold);"></i>
+          <i class="bi bi-collection" style="font-size: 26px; color: var(--isp-gold);"></i>
         </div>
         <div>
-          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 24px;">Manage Photos</p>
-          <p style="color: var(--isp-text-muted); font-size: 15px;">Upload and assign to clients</p>
+          <p style="font-family: var(--font-display); color: var(--isp-cream); font-size: 24px;">Manage Albums</p>
+          <p style="color: var(--isp-text-muted); font-size: 15px;">Create albums, upload photos, assign to clients</p>
         </div>
       </div>
       <i class="bi bi-arrow-right" style="font-size: 24px; color: var(--isp-gold);"></i>

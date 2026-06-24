@@ -32,10 +32,6 @@
 
   <!-- Action buttons -->
   <div class="flex items-center gap-3 mb-8">
-    <button onclick="document.getElementById('add-photos-modal').style.display='flex'"
-      class="admin-btn px-5 py-3 flex items-center gap-2" style="font-size: 14px;">
-      <i class="bi bi-plus-lg" style="font-size: 16px;"></i> Add from Library
-    </button>
     <button onclick="openAssignAlbumModal()"
       class="px-5 py-3 flex items-center gap-2 rounded-lg transition-all hover:border-isp-gold" style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold); font-size: 14px; font-weight: 500;">
       <i class="bi bi-people" style="font-size: 16px;"></i> Assign to Clients
@@ -134,36 +130,6 @@
       <p style="color: var(--isp-text-muted); font-size: 16px;">No clients assigned. Click "Assign to Clients" to share this album.</p>
     </div>
     {% endif %}
-  </div>
-
-  <!-- Add photos modal -->
-  <div id="add-photos-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
-    <div class="admin-modal w-full max-w-3xl p-10" style="max-height: 85vh; overflow-y: auto;">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Add Photos to Album</h2>
-          <p style="color: var(--isp-text-muted); font-size: 15px; margin-top: 4px;">Select photos from your library</p>
-        </div>
-        <button onclick="document.getElementById('add-photos-modal').style.display='none'" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-isp-green" style="color: var(--isp-text-muted);">
-          <i class="bi bi-x-lg" style="font-size: 20px;"></i>
-        </button>
-      </div>
-      {% if all_photos %}
-      <div class="grid grid-cols-3 md:grid-cols-4 gap-3 mb-7">
-        {% for photo in all_photos %}
-        <label class="relative cursor-pointer rounded-lg overflow-hidden" style="aspect-ratio: 1/1; border: {% if photo.id in album_photo_ids %}2px solid var(--isp-gold){% else %}1px solid rgba(200,169,110,0.1){% endif %};">
-          <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
-          <input type="checkbox" value="{{ photo.id }}" class="album-photo-checkbox absolute top-2 right-2" style="width: 22px; height: 22px; accent-color: var(--isp-gold);" {% if photo.id in album_photo_ids %}checked{% endif %} />
-        </label>
-        {% endfor %}
-      </div>
-      <button onclick="saveAlbumPhotos()" class="admin-btn w-full py-4" style="font-size: 16px;">
-        Save Photos
-      </button>
-      {% else %}
-      <p style="color: var(--isp-text-muted); font-size: 16px;">No photos in your library. Upload photos first.</p>
-      {% endif %}
-    </div>
   </div>
 
   <!-- Assign album modal -->
@@ -302,29 +268,7 @@ function uploadFiles(files) {
   xhr.send(formData);
 }
 
-// ---- Library photo selection ----
-
-function saveAlbumPhotos() {
-  var photoIds = [];
-  document.querySelectorAll('.album-photo-checkbox:checked').forEach(function(cb) {
-    photoIds.push(parseInt(cb.value));
-  });
-
-  fetch('/admin/albums/' + albumId + '/photos', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ photo_ids: photoIds })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    if (data.success) {
-      document.getElementById('add-photos-modal').style.display = 'none';
-      location.reload();
-    } else {
-      alert(data.message);
-    }
-  });
-}
+// ---- Photo removal ----
 
 function removePhoto(albumId, photoId) {
   if (!confirm('Remove this photo from the album?')) return;
