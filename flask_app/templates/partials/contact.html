@@ -122,6 +122,20 @@
               class="form-input" style="resize: none;"></textarea>
           </div>
 
+          <div>
+            <label class="form-label">Send Inquiry Via</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" id="delivery-email" class="delivery-btn active"
+                style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:1px solid var(--isp-green-light);background-color:var(--isp-green);color:var(--isp-cream);font-family:var(--font-body);font-size:14px;letter-spacing:0.1em;cursor:pointer;transition:all 0.3s;border-radius:0;">
+                <i class="bi bi-envelope" style="font-size:16px;"></i> Email
+              </button>
+              <button type="button" id="delivery-messenger" class="delivery-btn"
+                style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:1px solid rgba(122,140,126,0.3);background-color:transparent;color:var(--isp-text-muted);font-family:var(--font-body);font-size:14px;letter-spacing:0.1em;cursor:pointer;transition:all 0.3s;border-radius:0;">
+                <i class="bi bi-messenger" style="font-size:16px;"></i> Messenger
+              </button>
+            </div>
+          </div>
+
           <button type="submit" id="cf-submit"
             class="uppercase tracking-widest hover:bg-isp-green-light disabled:opacity-60"
             style="background-color: var(--isp-green); color: var(--isp-cream); font-family: var(--font-body); letter-spacing: 0.2em; font-size: 14px; border: 1px solid var(--isp-green-light); cursor: pointer; transition: all 0.3s; width: 100%; padding: 18px 32px;">

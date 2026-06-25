@@ -207,6 +207,32 @@ function showToast(message) {
   if (!form) return;
 
   var submitBtn = document.getElementById("cf-submit");
+  var selectedDelivery = "email";
+
+  var btnEmail = document.getElementById("delivery-email");
+  var btnMessenger = document.getElementById("delivery-messenger");
+
+  function setDelivery(method) {
+    selectedDelivery = method;
+    if (method === "email") {
+      btnEmail.style.backgroundColor = "var(--isp-green)";
+      btnEmail.style.borderColor = "var(--isp-green-light)";
+      btnEmail.style.color = "var(--isp-cream)";
+      btnMessenger.style.backgroundColor = "transparent";
+      btnMessenger.style.borderColor = "rgba(122,140,126,0.3)";
+      btnMessenger.style.color = "var(--isp-text-muted)";
+    } else {
+      btnMessenger.style.backgroundColor = "var(--isp-green)";
+      btnMessenger.style.borderColor = "var(--isp-green-light)";
+      btnMessenger.style.color = "var(--isp-cream)";
+      btnEmail.style.backgroundColor = "transparent";
+      btnEmail.style.borderColor = "rgba(122,140,126,0.3)";
+      btnEmail.style.color = "var(--isp-text-muted)";
+    }
+  }
+
+  if (btnEmail) btnEmail.addEventListener("click", function () { setDelivery("email"); });
+  if (btnMessenger) btnMessenger.addEventListener("click", function () { setDelivery("messenger"); });
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -259,13 +285,29 @@ function showToast(message) {
         eventType: eventType,
         eventDate: eventDate,
         message: message,
+        deliveryMethod: selectedDelivery,
       }),
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data.success) {
-          showToast(data.message || "Message sent! Ivan will be in touch soon.");
+          if (data.deliveryMethod === "messenger") {
+            var msgText = "New Inquiry from Ivan Soriano Photography Website\n\n" +
+              "Name: " + name + "\n" +
+              "Email: " + email + "\n" +
+              "Phone: " + (phone || "Not provided") + "\n" +
+              "Event Type: " + eventType + "\n" +
+              "Event Date: " + (eventDate || "Not specified") + "\n" +
+              "\nMessage:\n" + message;
+
+            var messengerUrl = "https://m.me/ivansorianophotography?text=" + encodeURIComponent(msgText);
+            window.open(messengerUrl, "_blank");
+            showToast("Opening Messenger with your message ready to send!");
+          } else {
+            showToast(data.message || "Inquiry sent! Ivan will be in touch soon.");
+          }
           form.reset();
+          setDelivery("email");
         } else {
           showToast("Something went wrong. Please try again.");
         }

@@ -1,6 +1,9 @@
 import json
 import os
 import re
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, send_from_directory
@@ -101,6 +104,41 @@ def save_inquiry(data):
         json.dump(inquiries, f, indent=2, ensure_ascii=False)
 
 
+def send_inquiry_email(data):
+    """Send inquiry data to the photographer's Gmail via SMTP."""
+    gmail_user = os.environ.get("GMAIL_USER", "")
+    gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
+    if not gmail_user or not gmail_password:
+        return False
+
+    subject = f"New Inquiry from {data['name']} - {data['eventType'].title()}"
+    body = (
+        f"New inquiry received from the website contact form.\n\n"
+        f"Name: {data['name']}\n"
+        f"Email: {data['email']}\n"
+        f"Phone: {data['phone'] or 'Not provided'}\n"
+        f"Event Type: {data['eventType']}\n"
+        f"Event Date: {data['eventDate'] or 'Not specified'}\n"
+        f"\nMessage:\n{data['message']}\n"
+    )
+
+    msg = MIMEMultipart()
+    msg["From"] = gmail_user
+    msg["To"] = gmail_user
+    msg["Reply-To"] = data["email"]
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain", "utf-8"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(gmail_user, gmail_password)
+            server.sendmail(gmail_user, gmail_user, msg.as_string())
+        return True
+    except Exception as e:
+        print(f"SMTP error: {e}")
+        return False
+
+
 def seed_admin():
     """Create default admin account if none exists."""
     if not User.query.filter_by(role="admin").first():
@@ -130,6 +168,7 @@ def contact():
     event_type = (data.get("eventType") or "").strip()
     event_date = (data.get("eventDate") or "").strip()
     message = (data.get("message") or "").strip()
+    delivery_method = (data.get("deliveryMethod") or "email").strip().lower()
 
     errors = {}
     if not name:
@@ -146,16 +185,26 @@ def contact():
     if errors:
         return jsonify({"success": False, "errors": errors}), 400
 
-    save_inquiry({
+    inquiry_data = {
         "name": name,
         "email": email,
         "phone": phone,
         "eventType": event_type,
         "eventDate": event_date,
         "message": message,
-    })
+        "deliveryMethod": delivery_method,
+    }
 
-    return jsonify({"success": True, "message": "Message sent! Ivan will be in touch soon."})
+    save_inquiry(inquiry_data)
+
+    if delivery_method == "email":
+        email_sent = send_inquiry_email(inquiry_data)
+        if email_sent:
+            return jsonify({"success": True, "message": "Inquiry sent to Ivan's email! He'll be in touch soon.", "deliveryMethod": "email"})
+        else:
+            return jsonify({"success": True, "message": "Inquiry saved! Ivan will be in touch soon.", "deliveryMethod": "email"})
+    else:
+        return jsonify({"success": True, "message": "Opening Messenger...", "deliveryMethod": "messenger"})
 
 
 # Create tables and seed admin on startup
