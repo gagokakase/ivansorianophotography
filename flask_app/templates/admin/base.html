@@ -279,6 +279,14 @@
       });
       resetTimeout();
     })();
+
+    // Prevent back/forward navigation to cached admin pages after logout
+    (function() {
+      window.history.pushState(null, '', window.location.href);
+      window.onpopstate = function() {
+        window.history.pushState(null, '', window.location.href);
+      };
+    })();
   </script>
   {% block scripts %}{% endblock %}
 </body>

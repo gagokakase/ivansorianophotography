@@ -314,6 +314,14 @@
       onScroll();
       btn.addEventListener('click', function(){ window.scrollTo({top:0,behavior:'smooth'}); });
     })();
+
+    // Prevent back/forward navigation to cached pages after logout
+    (function() {
+      window.history.pushState(null, '', window.location.href);
+      window.onpopstate = function() {
+        window.history.pushState(null, '', window.location.href);
+      };
+    })();
   </script>
 </body>
 </html>

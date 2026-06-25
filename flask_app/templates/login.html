@@ -320,6 +320,14 @@
         icon.classList.add('bi-eye');
       }
     }
+
+    // Prevent back/forward navigation to cached authenticated pages
+    (function() {
+      window.history.pushState(null, '', window.location.href);
+      window.onpopstate = function() {
+        window.history.pushState(null, '', window.location.href);
+      };
+    })();
   </script>
 </body>
 </html>

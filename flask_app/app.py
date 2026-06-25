@@ -78,6 +78,14 @@ if "client.export_selected" in app.view_functions:
     csrf.exempt(app.view_functions["client.export_selected"])
 
 
+@app.after_request
+def set_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 # Ensure upload directory exists
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
