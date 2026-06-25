@@ -58,7 +58,7 @@
 
   <!-- Client nav -->
   <header class="sticky top-0 z-50" style="background-color: rgba(8,12,9,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(200,169,110,0.15);">
-    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-10 py-5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-10 py-4 sm:py-5">
       <a href="/client/gallery" class="flex items-center gap-3">
         <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M10 10 H50 Q50 50 10 50 Z" fill="white" />
@@ -75,7 +75,7 @@
           </span>
         </div>
       </a>
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-3 sm:gap-6">
         <div class="hidden md:flex items-center gap-3">
           <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 16px; font-weight: 600;">
             {{ current_user.name[0] if current_user.name else 'C' }}
@@ -91,7 +91,7 @@
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-6 lg:px-10 py-12">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-12">
     <div class="gallery-animate">
 
       <!-- Welcome banner -->
@@ -100,10 +100,10 @@
           <div style="width: 36px; height: 1px; background-color: var(--isp-gold);"></div>
           <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Your Albums</span>
         </div>
-        <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 56px; font-weight: 300; line-height: 1.1;">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl" style="font-family: var(--font-display); color: var(--isp-cream); font-weight: 300; line-height: 1.1;">
           Hello, {{ current_user.name }}
         </h1>
-        <p class="mt-3" style="color: var(--isp-text-muted); font-size: 18px;">
+        <p class="mt-3 text-base sm:text-lg" style="color: var(--isp-text-muted);">
           {% if albums %}
           You have <span style="color: var(--isp-gold); font-weight: 500;">{{ albums|length }}</span> album{{ 's' if albums|length != 1 }} assigned to you.
           {% else %}

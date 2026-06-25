@@ -16,11 +16,11 @@
       <div style="width: 36px; height: 1px; background-color: var(--isp-gold);"></div>
       <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Album</span>
     </div>
-    <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 48px; font-weight: 300; line-height: 1.1;">{{ album.name }}</h1>
+    <h1 class="text-3xl sm:text-4xl md:text-5xl" style="font-family: var(--font-display); color: var(--isp-cream); font-weight: 300; line-height: 1.1;">{{ album.name }}</h1>
     {% if album.description %}
     <p class="mt-3" style="color: var(--isp-text-muted); font-size: 17px; line-height: 1.5;">{{ album.description }}</p>
     {% endif %}
-    <div class="flex items-center gap-5 mt-4">
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4">
       <span class="inline-flex items-center gap-2" style="color: var(--isp-text-muted); font-size: 15px;">
         <i class="bi bi-images" style="font-size: 17px;"></i>
         <span id="photo-count-text">{{ album.photos|length }}/{{ max_photos }} photos</span>
@@ -40,7 +40,7 @@
   </div>
 
   <!-- Action buttons -->
-  <div class="flex items-center gap-3 mb-8">
+  <div class="flex flex-wrap items-center gap-3 mb-8">
     <button onclick="openCoverEditor()"
       class="admin-btn px-5 py-3 flex items-center gap-2 rounded-lg" style="font-size: 14px; font-weight: 500;">
       <i class="bi bi-aspect-ratio" style="font-size: 16px;"></i> Edit Cover
@@ -60,9 +60,9 @@
         <p style="color: var(--isp-text-muted); font-size: 13px; margin-top: 2px;">Add a Drive link so clients can view the full gallery and download originals</p>
       </div>
     </div>
-    <div class="flex gap-3">
+    <div class="flex flex-col sm:flex-row gap-3">
       <input type="text" id="drive-link-input" class="admin-input flex-1" placeholder="https://drive.google.com/..." value="{{ album.drive_link or '' }}" style="font-size: 14px;" />
-      <button onclick="saveDriveLink()" class="admin-btn px-6 py-3 rounded-lg flex items-center gap-2" style="font-size: 14px; font-weight: 500;">
+      <button onclick="saveDriveLink()" class="admin-btn px-6 py-3 rounded-lg flex items-center gap-2 justify-center" style="font-size: 14px; font-weight: 500;">
         <i class="bi bi-check-lg" style="font-size: 16px;"></i> Save
       </button>
     </div>
@@ -127,7 +127,7 @@
 
   <!-- Album photos -->
   {% if album.photos %}
-  <div class="flex items-center gap-3 mb-5">
+  <div class="flex flex-wrap items-center gap-3 mb-5">
     <button onclick="toggleSelectMode()" id="select-mode-btn"
       class="px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold flex items-center gap-2"
       style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-cream); font-size: 14px; font-weight: 500;">
@@ -215,9 +215,9 @@
 
   <!-- Cover editor modal -->
   <div id="cover-editor-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.85); backdrop-filter: blur(8px);">
-    <div class="admin-modal w-full" style="padding: 0; overflow: hidden; max-width: 1700px; margin: 0 auto;">
+    <div class="admin-modal w-full" style="padding: 0; overflow: hidden; max-width: 1700px; margin: 0 auto; max-height: 90vh; overflow-y: auto;">
       <!-- Header -->
-      <div class="flex items-center justify-between px-8 py-5" style="border-bottom: 1px solid rgba(200,169,110,0.12);">
+      <div class="flex items-center justify-between px-4 sm:px-8 py-5" style="border-bottom: 1px solid rgba(200,169,110,0.12);">
         <div class="flex items-center gap-3">
           <i class="bi bi-aspect-ratio" style="font-size: 24px; color: var(--isp-gold);"></i>
           <div>
@@ -341,7 +341,7 @@
 
   <!-- Assign album modal -->
   <div id="assign-album-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
-    <div class="admin-modal w-full max-w-lg p-10">
+    <div class="admin-modal w-full max-w-lg p-6 sm:p-10">
       <div class="flex items-center justify-between mb-8">
         <div>
           <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Assign to Clients</h2>

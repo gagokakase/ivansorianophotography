@@ -4,17 +4,17 @@
 <div class="admin-animate">
 
   <!-- Page header -->
-  <div class="flex items-center justify-between mb-10">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
     <div>
       <div class="flex items-center gap-4 mb-3">
         <div style="width: 36px; height: 1px; background-color: var(--isp-gold);"></div>
         <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 14px;">Collections</span>
       </div>
-      <h1 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 48px; font-weight: 300; line-height: 1.1;">Albums</h1>
-      <p class="mt-2" style="color: var(--isp-text-muted); font-size: 17px;">Group photos into albums and assign them to clients.</p>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl" style="font-family: var(--font-display); color: var(--isp-cream); font-weight: 300; line-height: 1.1;">Albums</h1>
+      <p class="mt-2 text-sm sm:text-base" style="color: var(--isp-text-muted);">Group photos into albums and assign them to clients.</p>
     </div>
     <button onclick="document.getElementById('create-album-modal').style.display='flex'"
-      class="admin-btn px-6 py-3.5 flex items-center gap-2" style="font-size: 15px;">
+      class="admin-btn px-6 py-3.5 flex items-center gap-2 self-start sm:self-auto" style="font-size: 15px;">
       <i class="bi bi-collection" style="font-size: 18px;"></i> New Album
     </button>
   </div>
@@ -181,7 +181,7 @@
 
   <!-- Edit album modal -->
   <div id="edit-album-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
-    <div class="admin-modal w-full max-w-lg p-10">
+    <div class="admin-modal w-full max-w-lg p-6 sm:p-10">
       <div class="flex items-center justify-between mb-8">
         <div>
           <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">Edit Album</h2>
@@ -210,7 +210,7 @@
 
   <!-- Create album modal -->
   <div id="create-album-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none; background-color: rgba(8,12,9,0.8); backdrop-filter: blur(4px);">
-    <div class="admin-modal w-full max-w-lg p-10">
+    <div class="admin-modal w-full max-w-lg p-6 sm:p-10">
       <div class="flex items-center justify-between mb-8">
         <div>
           <h2 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 28px; font-weight: 300;">New Album</h2>
