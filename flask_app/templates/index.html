@@ -6,7 +6,7 @@
   <title>Ivan Soriano Photography</title>
   <meta name="description" content="This web application offers a premium UX/UI design service for photographers, enhancing their online presence with tailored visual solutions." />
   <meta name="robots" content="noindex, nofollow" />
-  <style>html, body { height: 100%; margin: 0; }</style>
+  <style>html, body { height: 100%; margin: 0; width: 100%; overflow-x: hidden; max-width: 100%; }</style>
 
   <!-- Tailwind Play CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -47,7 +47,7 @@
 
   {% include 'partials/navbar.html' %}
 
-  <main>
+  <main class="w-full">
     {% include 'partials/hero.html' %}
     {% include 'partials/about.html' %}
     {% include 'partials/services.html' %}

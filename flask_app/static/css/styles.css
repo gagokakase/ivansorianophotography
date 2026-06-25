@@ -23,7 +23,7 @@
 
 /* ===== Base ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: 100%; width: 100%; overflow-x: hidden; }
 body {
   background-color: var(--isp-bg);
   font-family: var(--font-body);
@@ -37,6 +37,12 @@ body {
 ::-webkit-scrollbar-track { background: var(--isp-bg); }
 ::-webkit-scrollbar-thumb { background: rgba(200,169,110,0.2); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(200,169,110,0.4); }
+
+/* Hide scrollbar on mobile to prevent gap */
+@media (max-width: 767px) {
+  ::-webkit-scrollbar { width: 0; display: none; }
+  html { scrollbar-width: none; -ms-overflow-style: none; }
+}
 
 /* ===== Scroll Reveal Animations (replacing Framer Motion) ===== */
 .reveal {
@@ -438,8 +444,13 @@ html {
 /* ===== Cross-cutting responsive fixes ===== */
 
 /* Prevent horizontal overflow on all pages */
+html,
 body {
   overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* Ensure all modals scroll on small screens */

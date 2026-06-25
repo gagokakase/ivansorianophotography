@@ -5,7 +5,7 @@
       <!-- Image column -->
       <div class="reveal-x-left relative">
         <!-- Background accent box -->
-        <div class="absolute -left-4 -top-4 w-48 h-64 -z-10" style="background-color: var(--isp-green); opacity: 0.25;"></div>
+        <div class="absolute -left-4 -top-4 w-48 h-64 -z-10 hidden sm:block" style="background-color: var(--isp-green); opacity: 0.25;"></div>
 
         <div class="relative overflow-hidden">
           <img src="{{ url_for('static', filename='img/about.jpg') }}"
@@ -16,7 +16,7 @@
             style="background: linear-gradient(to top, var(--isp-bg) 0%, transparent 100%);"></div>
 
           <!-- Social media icons overlay -->
-          <div class="absolute bottom-6 left-6 flex gap-3 z-10">
+          <div class="absolute top-6 left-6 md:top-auto md:bottom-6 flex gap-3 z-10">
             <a href="https://www.facebook.com/Banman13" target="_blank" rel="noopener noreferrer" aria-label="Facebook"
               class="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
               style="background-color: rgba(8,12,9,0.7); border: 1px solid rgba(200,169,110,0.3); color: #1877F2; backdrop-filter: blur(4px);">
@@ -36,7 +36,7 @@
         </div>
 
         <!-- Floating stat card -->
-        <div class="reveal delay-4 absolute -bottom-6 -right-4 md:-right-8 p-6 flex items-center gap-5"
+        <div class="reveal delay-4 absolute -bottom-6 right-4 md:-right-8 p-4 sm:p-6 flex items-center gap-3 sm:gap-5"
           style="background-color: var(--isp-bg-card); border: 1px solid rgba(200,169,110,0.2);">
           <svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 10 H50 Q50 50 10 50 Z" fill="white" />
