@@ -108,11 +108,96 @@ def send_inquiry_email(data):
     """Send inquiry data to the photographer's Gmail via SMTP."""
     gmail_user = os.environ.get("GMAIL_USER", "")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
+    recipient = "ics.photog@gmail.com"
     if not gmail_user or not gmail_password:
         return False
 
     subject = f"New Inquiry from {data['name']} - {data['eventType'].title()}"
-    body = (
+
+    html_body = f"""\
+<html>
+<body style="margin:0;padding:0;background-color:#080C09;font-family:'Inter',system-ui,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#080C09;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#111714;border:1px solid rgba(200,169,110,0.15);border-radius:12px;overflow:hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#1F4830;padding:28px 40px;border-bottom:1px solid rgba(200,169,110,0.2);">
+              <h1 style="margin:0;color:#C8A96E;font-size:22px;font-weight:500;letter-spacing:0.05em;">New Inquiry Received</h1>
+              <p style="margin:6px 0 0 0;color:#9DAD9F;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;">Ivan Soriano Photography</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                <tr>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);width:140px;vertical-align:top;">
+                    <span style="color:#9DAD9F;font-size:13px;text-transform:uppercase;letter-spacing:0.1em;">Name</span>
+                  </td>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);color:#F5F0E1;font-size:16px;vertical-align:top;">
+                    {data['name']}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);vertical-align:top;">
+                    <span style="color:#9DAD9F;font-size:13px;text-transform:uppercase;letter-spacing:0.1em;">Email</span>
+                  </td>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);vertical-align:top;">
+                    <a href="mailto:{data['email']}" style="color:#C8A96E;font-size:16px;text-decoration:none;">{data['email']}</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);vertical-align:top;">
+                    <span style="color:#9DAD9F;font-size:13px;text-transform:uppercase;letter-spacing:0.1em;">Phone</span>
+                  </td>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);color:#F5F0E1;font-size:16px;vertical-align:top;">
+                    {data['phone'] or 'Not provided'}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);vertical-align:top;">
+                    <span style="color:#9DAD9F;font-size:13px;text-transform:uppercase;letter-spacing:0.1em;">Event Type</span>
+                  </td>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);color:#F5F0E1;font-size:16px;vertical-align:top;">
+                    {data['eventType'].title()}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);vertical-align:top;">
+                    <span style="color:#9DAD9F;font-size:13px;text-transform:uppercase;letter-spacing:0.1em;">Event Date</span>
+                  </td>
+                  <td style="padding:12px 0;border-bottom:1px solid rgba(200,169,110,0.08);color:#F5F0E1;font-size:16px;vertical-align:top;">
+                    {data['eventDate'] or 'Not specified'}
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Message -->
+              <div style="margin-top:24px;padding:20px;background-color:#0D120F;border:1px solid rgba(200,169,110,0.1);border-radius:8px;">
+                <p style="margin:0 0 10px 0;color:#9DAD9F;font-size:13px;text-transform:uppercase;letter-spacing:0.1em;">Message</p>
+                <p style="margin:0;color:#F5F0E1;font-size:15px;line-height:1.8;white-space:pre-wrap;">{data['message']}</p>
+              </div>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 40px;background-color:#0D120F;border-top:1px solid rgba(200,169,110,0.08);">
+              <p style="margin:0;color:#9DAD9F;font-size:12px;text-align:center;letter-spacing:0.05em;">
+                This inquiry was submitted from the Ivan Soriano Photography website contact form.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+
+    plain_body = (
         f"New inquiry received from the website contact form.\n\n"
         f"Name: {data['name']}\n"
         f"Email: {data['email']}\n"
@@ -122,17 +207,18 @@ def send_inquiry_email(data):
         f"\nMessage:\n{data['message']}\n"
     )
 
-    msg = MIMEMultipart()
+    msg = MIMEMultipart("alternative")
     msg["From"] = gmail_user
-    msg["To"] = gmail_user
+    msg["To"] = recipient
     msg["Reply-To"] = data["email"]
     msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain", "utf-8"))
+    msg.attach(MIMEText(plain_body, "plain", "utf-8"))
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
 
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(gmail_user, gmail_password)
-            server.sendmail(gmail_user, gmail_user, msg.as_string())
+            server.sendmail(gmail_user, recipient, msg.as_string())
         return True
     except Exception as e:
         print(f"SMTP error: {e}")
