@@ -13,7 +13,7 @@ auth_bp = Blueprint("auth", __name__)
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_DURATION = timedelta(minutes=15)
 SESSION_DURATION = timedelta(minutes=30)
-OTP_EXPIRY = timedelta(minutes=5)
+OTP_EXPIRY = timedelta(minutes=1)
 
 
 def log_action(user_id, action, detail=None):

@@ -249,7 +249,7 @@ def send_otp_email(to_email, otp_code):
           </tr>
           <tr>
             <td style="padding:36px 40px;text-align:center;">
-              <p style="margin:0 0 24px 0;color:#F5F0E1;font-size:15px;line-height:1.7;">Use the code below to complete your login. This code expires in 5 minutes.</p>
+              <p style="margin:0 0 24px 0;color:#F5F0E1;font-size:15px;line-height:1.7;">Use the code below to complete your login. This code expires in 1 minute.</p>
               <div style="display:inline-block;padding:20px 40px;background-color:#0D120F;border:1px solid rgba(200,169,110,0.2);border-radius:10px;">
                 <span style="font-size:36px;font-weight:600;letter-spacing:0.4em;color:#C8A96E;font-family:'Inter',monospace;">{otp_code}</span>
               </div>
@@ -269,7 +269,7 @@ def send_otp_email(to_email, otp_code):
 </html>
 """
 
-    plain_body = f"Your login code for Ivan Soriano Photography is: {otp_code}\n\nThis code expires in 5 minutes."
+    plain_body = f"Your login code for Ivan Soriano Photography is: {otp_code}\n\nThis code expires in 1 minute."
 
     msg = MIMEMultipart("alternative")
     msg["From"] = gmail_user
