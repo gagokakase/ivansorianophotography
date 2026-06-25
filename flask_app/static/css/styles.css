@@ -23,8 +23,7 @@
 
 /* ===== Base ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { height: 100%; width: 100%; }
-body { height: 100%; width: 100%; overflow-x: hidden; }
+html, body { height: 100%; width: 100%; }
 body {
   background-color: var(--isp-bg);
   font-family: var(--font-body);
@@ -438,11 +437,14 @@ html {
 
 /* Prevent horizontal overflow on all pages */
 body {
-  overflow-x: hidden;
   max-width: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
+}
+.overflow-wrapper {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Ensure all modals scroll on small screens */
