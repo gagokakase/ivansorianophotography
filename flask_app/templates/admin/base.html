@@ -108,15 +108,15 @@
 </head>
 <body style="background-color: var(--isp-bg); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; max-width: 100%; width: 100%;">
 
-  <div class="flex items-stretch" style="min-height: 100vh;">
+  <div style="min-height: 100vh;">
 
     <!-- Sidebar -->
-    <aside class="fixed lg:sticky inset-y-0 left-0 w-72 z-50 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0"
+    <aside class="fixed top-0 bottom-0 left-0 w-72 z-50 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0"
       id="admin-sidebar"
       style="background-color: var(--isp-bg-card); border-right: 1px solid rgba(200,169,110,0.12);">
 
       <!-- Logo -->
-      <div class="px-6 py-7" style="border-bottom: 1px solid rgba(200,169,110,0.1);">
+      <div class="px-6 flex-shrink-0 flex items-center" style="border-bottom: 1px solid rgba(200,169,110,0.1); height: 80px;">
         <a href="/admin/dashboard" class="flex items-center gap-3">
           <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 10 H50 Q50 50 10 50 Z" fill="white" />
@@ -136,7 +136,7 @@
       </div>
 
       <!-- Nav links -->
-      <nav class="flex-1 py-6 overflow-y-auto">
+      <nav class="flex-1 py-6 overflow-y-auto" style="min-height: 0;">
         <a href="/admin/dashboard" class="admin-nav-link" style="color: var(--isp-cream);">
           <i class="bi bi-grid-1x2-fill" style="font-size: 20px;"></i> Dashboard
         </a>
@@ -152,7 +152,7 @@
       </nav>
 
       <!-- User info -->
-      <div class="px-6 py-5" style="border-top: 1px solid rgba(200,169,110,0.1);">
+      <div class="px-6 py-5 flex-shrink-0" style="border-top: 1px solid rgba(200,169,110,0.1);">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 16px; font-weight: 600;">
             {{ current_user.name[0] if current_user.name else 'A' }}
@@ -169,11 +169,11 @@
     <div id="sidebar-overlay" class="fixed inset-0 z-40 lg:hidden" style="background-color: rgba(0,0,0,0.6); display: none;" onclick="toggleSidebar()"></div>
 
     <!-- Main content -->
-    <div class="flex-1 min-w-0" style="min-height: 100vh;">
+    <div class="min-w-0 lg:ml-72" style="min-height: 100vh;">
 
       <!-- Top nav bar -->
-      <header class="sticky top-0 z-30 flex items-center justify-between px-5 py-4"
-        style="background-color: rgba(8,12,9,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(200,169,110,0.15);">
+      <header class="sticky top-0 z-30 flex items-center justify-between px-5"
+        style="background-color: rgba(8,12,9,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(200,169,110,0.15); height: 80px;">
         <div class="flex items-center gap-4">
           <button onclick="toggleSidebar()" class="lg:hidden" style="color: var(--isp-cream);">
             <i class="bi bi-list" style="font-size: 26px;"></i>
