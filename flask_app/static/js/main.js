@@ -64,7 +64,7 @@ function closeMobileMenu() {
         }
       });
     },
-    { threshold: 0.1, rootMargin: "0px 0px -60px 0px" }
+    { threshold: 0.05, rootMargin: "0px 0px -20px 0px" }
   );
 
   document.querySelectorAll(".reveal, .reveal-x-left, .reveal-x-right, .reveal-scale").forEach(function (el) {
@@ -510,20 +510,27 @@ function showToast(message) {
 
 // ---- Back to top button ----
 (function () {
-  var btn = document.getElementById("back-to-top");
-  if (!btn) return;
+  var existing = document.getElementById("back-to-top");
+  if (existing) existing.remove();
+
+  var btn = document.createElement("button");
+  btn.id = "back-to-top";
+  btn.innerHTML = '<i class="bi bi-arrow-up" style="font-size:22px"></i>';
+  btn.style.cssText = "position:fixed;bottom:20px;right:12px;width:44px;height:44px;background-color:rgba(31,72,48,0.9);border:1px solid rgba(200,169,110,0.4);color:var(--isp-gold);backdrop-filter:blur(8px);border-radius:50%;cursor:pointer;z-index:99999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s ease;pointer-events:none;";
+  document.documentElement.appendChild(btn);
 
   function onScroll() {
-    if (window.scrollY > 400) {
+    if (window.scrollY > 300) {
       btn.style.opacity = "1";
-      btn.style.visibility = "visible";
+      btn.style.pointerEvents = "auto";
     } else {
       btn.style.opacity = "0";
-      btn.style.visibility = "hidden";
+      btn.style.pointerEvents = "none";
     }
   }
 
   window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("touchmove", onScroll, { passive: true });
   onScroll();
 
   btn.addEventListener("click", function () {

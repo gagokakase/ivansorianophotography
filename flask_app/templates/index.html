@@ -6,7 +6,7 @@
   <title>Ivan Soriano Photography</title>
   <meta name="description" content="This web application offers a premium UX/UI design service for photographers, enhancing their online presence with tailored visual solutions." />
   <meta name="robots" content="noindex, nofollow" />
-  <style>html, body { height: 100%; margin: 0; width: 100%; overflow-x: hidden; max-width: 100%; }</style>
+  <style>html { height: 100%; width: 100%; } body { height: 100%; width: 100%; margin: 0; overflow-x: hidden; max-width: 100%; }</style>
 
   <!-- Tailwind Play CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,15 +59,8 @@
 
   {% include 'partials/footer.html' %}
 
-  <!-- Back to top button -->
-  <button id="back-to-top"
-    class="fixed bottom-6 right-6 z-50 w-12 h-12 flex items-center justify-center transition-all duration-300 hover:bg-isp-gold hover:text-isp-bg"
-    style="background-color: rgba(31,72,48,0.85); border: 1px solid rgba(200,169,110,0.4); color: var(--isp-gold); opacity: 0; visibility: hidden; backdrop-filter: blur(8px);">
-    <i data-lucide="arrow-up" style="width: 20px; height: 20px;"></i>
-  </button>
-
   <!-- Toast container -->
-  <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px;"></div>
+  <div id="toast-container" style="position: fixed; bottom: 84px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px;"></div>
 
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script>lucide.createIcons();</script>
