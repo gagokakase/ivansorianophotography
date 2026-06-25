@@ -97,7 +97,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
             <div>
               <label class="form-label" for="cf-phone">Phone</label>
-              <input id="cf-phone" name="phone" type="tel" placeholder="09XX XXX XXXX" class="form-input" />
+              <input id="cf-phone" name="phone" type="text" inputmode="numeric" pattern="[0-9+ ]*" maxlength="20" placeholder="09XX XXX XXXX" class="form-input" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" />
             </div>
             <div>
               <label class="form-label" for="cf-event-type">Event Type</label>
