@@ -148,16 +148,26 @@
                 oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
             </div>
           </div>
-          <button type="submit"
+          <button type="submit" id="verify-btn"
             class="login-btn w-full py-3.5 uppercase text-sm">
             Verify Code
           </button>
         </form>
 
-        <div class="flex items-center justify-between mt-6">
-          <form method="POST" action="/resend-otp">
+        <!-- Timer -->
+        <div class="text-center mt-5">
+          <p id="otp-timer" style="font-family: var(--font-body); font-size: 13px; color: var(--isp-text-muted);">
+            <i class="bi bi-clock" style="font-size: 12px;"></i> Code expires in <span id="timer-display" style="color: var(--isp-gold); font-weight: 600;">1:00</span>
+          </p>
+          <p id="otp-expired" style="display:none; font-family: var(--font-body); font-size: 13px; color: #f87171;">
+            <i class="bi bi-exclamation-triangle" style="font-size: 12px;"></i> Code expired. Please resend.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between mt-4">
+          <form method="POST" action="/resend-otp" id="resend-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button type="submit" style="color: var(--isp-gold); font-size: 13px; text-decoration: none; background:none;border:none;cursor:pointer;">
+            <button type="submit" id="resend-btn" style="color: var(--isp-gold); font-size: 13px; text-decoration: none; background:none;border:none;cursor:pointer;">
               <i class="bi bi-arrow-repeat" style="font-size: 12px;"></i> Resend Code
             </button>
           </form>
@@ -255,6 +265,48 @@
   </div>
 
   <script>
+    {% if otp_step and otp_expiry %}
+    (function() {
+      var expiryStr = {{ otp_expiry|tojson }};
+      var expiry = new Date(expiryStr + 'Z').getTime();
+      var timerDisplay = document.getElementById('timer-display');
+      var expiredMsg = document.getElementById('otp-expired');
+      var timerP = document.getElementById('otp-timer');
+      var verifyBtn = document.getElementById('verify-btn');
+      var otpInput = document.getElementById('otp-input');
+      var resendBtn = document.getElementById('resend-btn');
+
+      function updateTimer() {
+        var now = Date.now();
+        var remaining = Math.max(0, Math.floor((expiry - now) / 1000));
+
+        if (remaining <= 0) {
+          timerP.style.display = 'none';
+          expiredMsg.style.display = 'block';
+          verifyBtn.disabled = true;
+          verifyBtn.style.opacity = '0.5';
+          verifyBtn.style.cursor = 'not-allowed';
+          otpInput.disabled = true;
+          otpInput.style.opacity = '0.5';
+          resendBtn.click();
+          return;
+        }
+
+        var mins = Math.floor(remaining / 60);
+        var secs = remaining % 60;
+        timerDisplay.textContent = mins + ':' + (secs < 10 ? '0' + secs : secs);
+
+        if (remaining <= 10) {
+          timerDisplay.style.color = '#f87171';
+        }
+
+        setTimeout(updateTimer, 1000);
+      }
+
+      updateTimer();
+    })();
+    {% endif %}
+
     function togglePassword() {
       var field = document.getElementById('password-field');
       var icon = document.getElementById('eye-icon');

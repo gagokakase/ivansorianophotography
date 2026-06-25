@@ -45,6 +45,7 @@ def login():
         return redirect(url_for("client.gallery"))
 
     otp_step = session.get("otp_user_id") is not None
+    otp_expiry = session.get("otp_expiry") if otp_step else None
 
     if request.method == "POST":
         step = request.form.get("step", "credentials")
@@ -111,7 +112,7 @@ def login():
                 sent = start_otp_flow(user)
                 if sent:
                     flash("A verification code has been sent to your email.", "success")
-                    return render_template("login.html", otp_step=True)
+                    return render_template("login.html", otp_step=True, otp_expiry=session.get("otp_expiry"))
                 else:
                     flash("Could not send verification email. Please try again.", "error")
                     return render_template("login.html", otp_step=False)
@@ -133,7 +134,7 @@ def login():
 
             return render_template("login.html", otp_step=False)
 
-    return render_template("login.html", otp_step=otp_step)
+    return render_template("login.html", otp_step=otp_step, otp_expiry=otp_expiry)
 
 
 @auth_bp.route("/resend-otp", methods=["POST"])
