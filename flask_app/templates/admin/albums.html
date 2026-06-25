@@ -144,6 +144,11 @@
           <span class="inline-flex items-center gap-1.5" style="color: var(--isp-text-muted); font-size: 14px;">
             <i class="bi bi-people" style="font-size: 16px;"></i> {{ album.assignments|length }} clients
           </span>
+          {% if album.drive_link %}
+          <span class="inline-flex items-center gap-1.5" style="color: var(--isp-gold); font-size: 14px;">
+            <i class="bi bi-google" style="font-size: 16px;"></i> Drive
+          </span>
+          {% endif %}
         </div>
         <div class="flex items-center gap-2 mt-5">
           <a href="/admin/albums/{{ album.id }}" class="flex-1 text-center py-2.5 rounded-lg transition-all" style="background-color: rgba(31,72,48,0.3); color: var(--isp-cream); font-size: 14px; font-weight: 500;">

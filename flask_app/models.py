@@ -70,6 +70,7 @@ class Album(db.Model):
     cover_position_y = db.Column(db.Float, default=50.0)
     cover_zoom = db.Column(db.Float, default=1.0)
     cover_layout = db.Column(db.String(20), default="single")
+    drive_link = db.Column(db.Text, nullable=True)
 
     creator = db.relationship("User", foreign_keys=[created_by])
     cover_photo = db.relationship("Photo", foreign_keys=[cover_photo_id])

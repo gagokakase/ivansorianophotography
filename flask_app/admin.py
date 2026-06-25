@@ -371,7 +371,8 @@ def edit_album(album_id):
         return jsonify({
             "id": album.id,
             "name": album.name,
-            "description": album.description or ""
+            "description": album.description or "",
+            "drive_link": album.drive_link or ""
         })
 
     name = sanitize_text(request.form.get("name"), max_length=200)
@@ -389,6 +390,18 @@ def edit_album(album_id):
     return redirect(url_for("admin.albums"))
 
 
+@admin_bp.route("/albums/<int:album_id>/drive-link", methods=["POST"])
+@admin_required
+def update_drive_link(album_id):
+    album = Album.query.get_or_404(album_id)
+    data = request.get_json(force=True)
+    drive_link = (data.get("drive_link") or "").strip()
+    album.drive_link = drive_link if drive_link else None
+    db.session.commit()
+    log_action(current_user.id, "drive_link_update", f"Album ID {album_id}")
+    return jsonify({"success": True, "message": "Google Drive link updated."})
+
+
 @admin_bp.route("/albums/<int:album_id>")
 @admin_required
 def album_detail(album_id):
@@ -402,7 +415,13 @@ def album_detail(album_id):
                            all_photos=all_photos,
                            album_photo_ids=album_photo_ids,
                            all_clients=all_clients,
-                           assigned_client_ids=assigned_client_ids)
+                           assigned_client_ids=assigned_client_ids,
+                           min_photos=MIN_ALBUM_PHOTOS,
+                           max_photos=MAX_ALBUM_PHOTOS)
+
+
+MIN_ALBUM_PHOTOS = 5
+MAX_ALBUM_PHOTOS = 15
 
 
 @admin_bp.route("/albums/<int:album_id>/upload", methods=["POST"])
@@ -412,6 +431,10 @@ def upload_to_album(album_id):
 
     if "files" not in request.files:
         return jsonify({"success": False, "message": "No files selected."}), 400
+
+    current_count = len(album.photos)
+    if current_count >= MAX_ALBUM_PHOTOS:
+        return jsonify({"success": False, "message": f"Album already has the maximum of {MAX_ALBUM_PHOTOS} photos."}), 400
 
     files = request.files.getlist("files")
     upload_dir = os.path.join(current_app.config["UPLOAD_FOLDER"])
@@ -439,13 +462,19 @@ def upload_to_album(album_id):
             db.session.add(photo)
             db.session.flush()
 
+            if current_count + uploaded >= MAX_ALBUM_PHOTOS:
+                break
             ap = AlbumPhoto(album_id=album.id, photo_id=photo.id)
             db.session.add(ap)
             uploaded += 1
 
     if uploaded > 0:
         db.session.commit()
-        return jsonify({"success": True, "message": f"{uploaded} photo(s) uploaded and added to album."})
+        new_count = len(album.photos)
+        msg = f"{uploaded} photo(s) uploaded and added to album. ({new_count}/{MAX_ALBUM_PHOTOS})"
+        if new_count < MIN_ALBUM_PHOTOS:
+            msg += f" Warning: album needs at least {MIN_ALBUM_PHOTOS} photos."
+        return jsonify({"success": True, "message": msg, "photo_count": new_count})
     else:
         return jsonify({"success": False, "message": "No valid image files were uploaded."}), 400
 
@@ -456,8 +485,14 @@ def add_photos_to_album(album_id):
     album = Album.query.get_or_404(album_id)
     photo_ids = request.get_json(force=True).get("photo_ids", [])
 
+    current_count = len(album.photos)
+    if current_count >= MAX_ALBUM_PHOTOS:
+        return jsonify({"success": False, "message": f"Album already has the maximum of {MAX_ALBUM_PHOTOS} photos."}), 400
+
     added = 0
     for pid in photo_ids:
+        if current_count + added >= MAX_ALBUM_PHOTOS:
+            break
         existing = AlbumPhoto.query.filter_by(album_id=album.id, photo_id=pid).first()
         if not existing:
             ap = AlbumPhoto(album_id=album.id, photo_id=pid)
@@ -465,7 +500,11 @@ def add_photos_to_album(album_id):
             added += 1
 
     db.session.commit()
-    return jsonify({"success": True, "message": f"{added} photo(s) added to album."})
+    new_count = len(album.photos)
+    msg = f"{added} photo(s) added to album. ({new_count}/{MAX_ALBUM_PHOTOS})"
+    if new_count < MIN_ALBUM_PHOTOS:
+        msg += f" Warning: album needs at least {MIN_ALBUM_PHOTOS} photos."
+    return jsonify({"success": True, "message": msg, "photo_count": new_count})
 
 
 @admin_bp.route("/albums/<int:album_id>/photos/<int:photo_id>", methods=["DELETE"])
@@ -538,6 +577,10 @@ def assign_album(album_id):
     album = Album.query.get_or_404(album_id)
     data = request.get_json(force=True)
     client_ids = data.get("client_ids", [])
+
+    photo_count = len(album.photos)
+    if photo_count < MIN_ALBUM_PHOTOS:
+        return jsonify({"success": False, "message": f"Album needs at least {MIN_ALBUM_PHOTOS} photos before assigning to clients. Currently has {photo_count}."}), 400
 
     AlbumAssignment.query.filter_by(album_id=album.id).delete()
     for cid in client_ids:

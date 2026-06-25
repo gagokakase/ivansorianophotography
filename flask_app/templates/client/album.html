@@ -125,6 +125,13 @@
             <i class="bi bi-file-zip" style="font-size: 16px;"></i> Download All (ZIP)
           </a>
           {% endif %}
+          {% if album.drive_link %}
+          <a href="{{ album.drive_link }}" target="_blank" rel="noopener noreferrer"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold"
+            style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold); font-size: 14px; font-weight: 500;">
+            <i class="bi bi-google" style="font-size: 16px;"></i> View Full Gallery on Google Drive
+          </a>
+          {% endif %}
         </div>
       </div>
 

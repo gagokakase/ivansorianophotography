@@ -22,11 +22,20 @@
     {% endif %}
     <div class="flex items-center gap-5 mt-4">
       <span class="inline-flex items-center gap-2" style="color: var(--isp-text-muted); font-size: 15px;">
-        <i class="bi bi-images" style="font-size: 17px;"></i> {{ album.photos|length }} photos
+        <i class="bi bi-images" style="font-size: 17px;"></i>
+        <span id="photo-count-text">{{ album.photos|length }}/{{ max_photos }} photos</span>
+        {% if album.photos|length < min_photos %}
+        <span style="color: #f59e0b; font-size: 13px; margin-left: 4px;">(min {{ min_photos }})</span>
+        {% endif %}
       </span>
       <span class="inline-flex items-center gap-2" style="color: var(--isp-text-muted); font-size: 15px;">
         <i class="bi bi-people" style="font-size: 17px;"></i> {{ album.assignments|length }} clients
       </span>
+      {% if album.drive_link %}
+      <span class="inline-flex items-center gap-2" style="color: var(--isp-gold); font-size: 15px;">
+        <i class="bi bi-google" style="font-size: 17px;"></i> Drive link set
+      </span>
+      {% endif %}
     </div>
   </div>
 
@@ -40,6 +49,26 @@
       class="px-5 py-3 flex items-center gap-2 rounded-lg transition-all hover:border-isp-gold" style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-gold); font-size: 14px; font-weight: 500;">
       <i class="bi bi-people" style="font-size: 16px;"></i> Assign to Clients
     </button>
+  </div>
+
+  <!-- Google Drive link section -->
+  <div class="admin-card p-6 rounded-lg mb-8">
+    <div class="flex items-center gap-3 mb-4">
+      <i class="bi bi-google" style="font-size: 22px; color: var(--isp-gold);"></i>
+      <div>
+        <h3 style="font-family: var(--font-display); color: var(--isp-cream); font-size: 20px; font-weight: 400;">Google Drive Link</h3>
+        <p style="color: var(--isp-text-muted); font-size: 13px; margin-top: 2px;">Add a Drive link so clients can view the full gallery and download originals</p>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <input type="text" id="drive-link-input" class="admin-input flex-1" placeholder="https://drive.google.com/..." value="{{ album.drive_link or '' }}" style="font-size: 14px;" />
+      <button onclick="saveDriveLink()" class="admin-btn px-6 py-3 rounded-lg flex items-center gap-2" style="font-size: 14px; font-weight: 500;">
+        <i class="bi bi-check-lg" style="font-size: 16px;"></i> Save
+      </button>
+    </div>
+    <div id="drive-link-status" style="display: none; margin-top: 12px;">
+      <p id="drive-link-msg" style="font-size: 14px;"></p>
+    </div>
   </div>
 
   <!-- Drag & drop upload zone -->
@@ -911,6 +940,35 @@ function saveCover() {
 })();
 
 // ---- Photo removal ----
+
+function saveDriveLink() {
+  var link = document.getElementById('drive-link-input').value.trim();
+  var statusDiv = document.getElementById('drive-link-status');
+  var msgP = document.getElementById('drive-link-msg');
+  statusDiv.style.display = 'block';
+  msgP.style.color = 'var(--isp-text-muted)';
+  msgP.textContent = 'Saving...';
+  fetch('/admin/albums/{{ album.id }}/drive-link', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+    body: JSON.stringify({ drive_link: link })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        msgP.style.color = 'var(--isp-gold)';
+        msgP.textContent = 'Drive link saved successfully.';
+        setTimeout(function() { statusDiv.style.display = 'none'; }, 3000);
+      } else {
+        msgP.style.color = '#ef4444';
+        msgP.textContent = data.message || 'Failed to save.';
+      }
+    })
+    .catch(function() {
+      msgP.style.color = '#ef4444';
+      msgP.textContent = 'Error saving drive link.';
+    });
+}
 
 function removePhoto(albumId, photoId) {
   if (!confirm('Remove this photo from the album?')) return;
