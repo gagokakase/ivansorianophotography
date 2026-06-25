@@ -33,7 +33,9 @@ def start_otp_flow(user):
     session["otp_user_id"] = user.id
     session["otp_email"] = user.email
     session["otp_expiry"] = (datetime.utcnow() + OTP_EXPIRY).isoformat()
+    print(f"DEBUG OTP: sending code {code} to {user.email}", flush=True)
     sent = send_otp_email(user.email, code)
+    print(f"DEBUG OTP: send result = {sent}", flush=True)
     return sent
 
 
