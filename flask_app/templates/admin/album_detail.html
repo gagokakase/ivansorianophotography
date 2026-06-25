@@ -71,7 +71,14 @@
     </div>
   </div>
 
+  <!-- Upload notice -->
+  <div id="upload-notice" class="mb-6 rounded-lg p-4 flex items-start gap-3" style="display: none;">
+    <i id="upload-notice-icon" class="bi bi-exclamation-triangle-fill" style="font-size: 20px; flex-shrink: 0; margin-top: 1px;"></i>
+    <p id="upload-notice-text" style="font-size: 14px; line-height: 1.5;"></p>
+  </div>
+
   <!-- Drag & drop upload zone -->
+  {% if album.photos|length < max_photos %}
   <div id="drop-zone" class="mb-10 rounded-xl transition-all"
     style="border: 2px dashed rgba(200,169,110,0.25); background-color: rgba(17,23,20,0.5); padding: 48px 24px; text-align: center; cursor: pointer;"
     ondragenter="handleDragEnter(event)"
@@ -95,6 +102,15 @@
     </div>
     <input type="file" id="album-file-input" accept="image/jpeg,image/png,image/avif,image/webp" multiple style="display: none;" onchange="handleFileSelect(event)" />
   </div>
+  {% else %}
+  <div class="admin-card text-center py-10 rounded-lg mb-10">
+    <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style="background-color: rgba(31,72,48,0.3);">
+      <i class="bi bi-check-circle-fill" style="font-size: 28px; color: var(--isp-gold);"></i>
+    </div>
+    <p style="color: var(--isp-cream); font-size: 18px; font-family: var(--font-display);">Maximum photos reached ({{ max_photos }}/{{ max_photos }})</p>
+    <p class="mt-2" style="color: var(--isp-text-muted); font-size: 15px;">Remove photos from the album to upload new ones.</p>
+  </div>
+  {% endif %}
 
   <!-- Upload progress -->
   <div id="upload-progress" class="mb-8" style="display: none;">
@@ -111,21 +127,47 @@
 
   <!-- Album photos -->
   {% if album.photos %}
+  <div class="flex items-center gap-3 mb-5">
+    <button onclick="toggleSelectMode()" id="select-mode-btn"
+      class="px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold flex items-center gap-2"
+      style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-cream); font-size: 14px; font-weight: 500;">
+      <i class="bi bi-check2-square" style="font-size: 16px;"></i> Select Photos
+    </button>
+    <button onclick="selectAllPhotos()" id="select-all-btn"
+      class="hidden px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold items-center gap-2"
+      style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-cream); font-size: 14px; font-weight: 500;">
+      <i class="bi bi-check2-all" style="font-size: 16px;"></i> Select All
+    </button>
+    <button onclick="bulkRemoveSelected()" id="bulk-remove-btn"
+      class="hidden px-5 py-2.5 rounded-lg transition-all items-center gap-2"
+      style="background-color: rgba(220,38,38,0.85); color: white; font-size: 14px; font-weight: 500;">
+      <i class="bi bi-trash" style="font-size: 16px;"></i> Remove Selected (<span id="selected-count">0</span>)
+    </button>
+    <button onclick="cancelSelectMode()" id="cancel-select-btn"
+      class="hidden px-5 py-2.5 rounded-lg transition-all hover:border-isp-gold items-center gap-2"
+      style="border: 1px solid rgba(200,169,110,0.3); color: var(--isp-text-muted); font-size: 14px; font-weight: 500;">
+      <i class="bi bi-x-lg" style="font-size: 16px;"></i> Cancel
+    </button>
+  </div>
   <div id="album-photos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
     {% for ap in album.photos %}
-    <div class="admin-card relative overflow-hidden rounded-lg group album-photo-card" draggable="true" data-photo-id="{{ ap.photo.id }}" style="cursor: grab;">
+    <div class="admin-card relative overflow-hidden rounded-lg group album-photo-card" draggable="true" data-photo-id="{{ ap.photo.id }}" style="cursor: grab;" onclick="onPhotoCardClick(event, {{ ap.photo.id }})">
       {% if album.cover_photo_id == ap.photo.id %}
       <div class="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full flex items-center gap-1.5" style="background-color: var(--isp-green); color: var(--isp-gold); font-size: 12px; font-weight: 600; letter-spacing: 0.05em;">
         <i class="bi bi-star-fill" style="font-size: 13px;"></i> Cover
       </div>
       {% endif %}
+      <div class="photo-checkmark absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center z-10"
+        style="background-color: var(--isp-gold); display: none;">
+        <i class="bi bi-check-lg" style="font-size: 18px; color: var(--isp-bg);"></i>
+      </div>
       <div style="aspect-ratio: 1/1; overflow: hidden;">
         <img src="/uploads/{{ ap.photo.filename }}" alt="{{ ap.photo.original_name }}" loading="lazy"
           style="width: 100%; height: 100%; object-fit: cover;" />
       </div>
       <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
         style="background-color: rgba(8,12,9,0.75);">
-        <button onclick="removePhoto({{ album.id }}, {{ ap.photo.id }})"
+        <button onclick="event.stopPropagation(); removePhoto({{ album.id }}, {{ ap.photo.id }})"
           class="px-4 py-2.5 uppercase tracking-wider transition-all hover:opacity-80 flex items-center gap-2"
           style="background-color: rgba(220,38,38,0.85); color: white; font-size: 13px; font-weight: 500; border-radius: 4px;">
           <i class="bi bi-trash" style="font-size: 15px;"></i> Remove
@@ -339,6 +381,9 @@
 {% block scripts %}
 <script>
 var albumId = {{ album.id }};
+var currentPhotoCount = {{ album.photos|length }};
+var MAX_PHOTOS = {{ max_photos }};
+var MIN_PHOTOS = {{ min_photos }};
 
 // ---- Drag & drop upload ----
 
@@ -394,25 +439,64 @@ function handleFileSelect(e) {
   e.target.value = '';
 }
 
+function showUploadNotice(msg, type) {
+  var notice = document.getElementById('upload-notice');
+  var icon = document.getElementById('upload-notice-icon');
+  var text = document.getElementById('upload-notice-text');
+  text.textContent = msg;
+  if (type === 'error') {
+    notice.style.backgroundColor = 'rgba(220,38,38,0.12)';
+    notice.style.border = '1px solid rgba(220,38,38,0.3)';
+    icon.className = 'bi bi-x-circle-fill';
+    icon.style.color = '#ef4444';
+    text.style.color = '#fca5a5';
+  } else if (type === 'warning') {
+    notice.style.backgroundColor = 'rgba(245,158,11,0.12)';
+    notice.style.border = '1px solid rgba(245,158,11,0.3)';
+    icon.className = 'bi bi-exclamation-triangle-fill';
+    icon.style.color = '#f59e0b';
+    text.style.color = '#fcd34d';
+  }
+  notice.style.display = 'flex';
+  notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function uploadFiles(files) {
-  var formData = new FormData();
-  var validCount = 0;
+  var remaining = MAX_PHOTOS - currentPhotoCount;
+  if (remaining <= 0) {
+    showUploadNotice('This album already has the maximum of ' + MAX_PHOTOS + ' photos. Remove some photos before uploading new ones.', 'error');
+    return;
+  }
+
+  var validFiles = [];
   for (var i = 0; i < files.length; i++) {
     var f = files[i];
     var ext = f.name.split('.').pop().toLowerCase();
     if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp' || ext === 'avif' || ext === 'gif' || ext === 'bmp' || ext === 'tiff') {
-      formData.append('files', f);
-      validCount++;
+      validFiles.push(f);
     }
   }
 
-  if (validCount === 0) {
-    alert('No valid image files. Supported: JPG, PNG, AVIF');
+  if (validFiles.length === 0) {
+    showUploadNotice('No valid image files selected. Supported formats: JPG, PNG, AVIF, WebP', 'error');
     return;
   }
 
+  if (validFiles.length > remaining) {
+    showUploadNotice(
+      'You selected ' + validFiles.length + ' images but this album only has ' + remaining + ' slot' + (remaining > 1 ? 's' : '') + ' left (' + currentPhotoCount + '/' + MAX_PHOTOS + ' used). Please select at most ' + remaining + ' image' + (remaining > 1 ? 's' : '') + ' to upload.',
+      'warning'
+    );
+    return;
+  }
+
+  var formData = new FormData();
+  for (var i = 0; i < validFiles.length; i++) {
+    formData.append('files', validFiles[i]);
+  }
+
   document.getElementById('upload-progress').style.display = 'block';
-  document.getElementById('upload-status-text').textContent = 'Uploading ' + validCount + ' file' + (validCount > 1 ? 's' : '') + '...';
+  document.getElementById('upload-status-text').textContent = 'Uploading ' + validFiles.length + ' file' + (validFiles.length > 1 ? 's' : '') + '...';
   document.getElementById('upload-bar').style.width = '0%';
 
   var xhr = new XMLHttpRequest();
@@ -977,6 +1061,131 @@ function removePhoto(albumId, photoId) {
     .then(function(data) {
       if (data.success) location.reload();
       else alert(data.message);
+    });
+}
+
+// ---- Selection mode for bulk removal ----
+
+var selectMode = false;
+var selectedPhotoIds = [];
+
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedPhotoIds = [];
+  updateSelectUI();
+}
+
+function cancelSelectMode() {
+  selectMode = false;
+  selectedPhotoIds = [];
+  updateSelectUI();
+}
+
+function updateSelectUI() {
+  var selectBtn = document.getElementById('select-mode-btn');
+  var selectAllBtn = document.getElementById('select-all-btn');
+  var bulkRemoveBtn = document.getElementById('bulk-remove-btn');
+  var cancelBtn = document.getElementById('cancel-select-btn');
+  var cards = document.querySelectorAll('.album-photo-card');
+
+  if (selectMode) {
+    selectBtn.classList.add('hidden');
+    selectAllBtn.classList.remove('hidden');
+    selectAllBtn.style.display = 'flex';
+    bulkRemoveBtn.classList.remove('hidden');
+    bulkRemoveBtn.style.display = 'flex';
+    cancelBtn.classList.remove('hidden');
+    cancelBtn.style.display = 'flex';
+    cards.forEach(function(card) {
+      card.style.cursor = 'pointer';
+      card.style.outline = '2px solid transparent';
+      card.style.transition = 'outline 0.2s';
+      var hoverOverlay = card.querySelector('.absolute.inset-0');
+      if (hoverOverlay) hoverOverlay.style.display = 'none';
+    });
+  } else {
+    selectBtn.classList.remove('hidden');
+    selectAllBtn.classList.add('hidden');
+    selectAllBtn.style.display = 'none';
+    bulkRemoveBtn.classList.add('hidden');
+    bulkRemoveBtn.style.display = 'none';
+    cancelBtn.classList.add('hidden');
+    cancelBtn.style.display = 'none';
+    cards.forEach(function(card) {
+      card.style.cursor = 'grab';
+      card.style.outline = '2px solid transparent';
+      var hoverOverlay = card.querySelector('.absolute.inset-0');
+      if (hoverOverlay) hoverOverlay.style.display = '';
+      var checkmark = card.querySelector('.photo-checkmark');
+      if (checkmark) checkmark.style.display = 'none';
+    });
+  }
+  updateSelectedCount();
+}
+
+function onPhotoCardClick(e, photoId) {
+  if (!selectMode) return;
+  e.stopPropagation();
+  var idx = selectedPhotoIds.indexOf(photoId);
+  var card = e.currentTarget;
+  var checkmark = card.querySelector('.photo-checkmark');
+  if (idx > -1) {
+    selectedPhotoIds.splice(idx, 1);
+    card.style.outline = '2px solid transparent';
+    if (checkmark) checkmark.style.display = 'none';
+  } else {
+    selectedPhotoIds.push(photoId);
+    card.style.outline = '2px solid var(--isp-gold)';
+    if (checkmark) checkmark.style.display = 'flex';
+  }
+  updateSelectedCount();
+}
+
+function selectAllPhotos() {
+  var cards = document.querySelectorAll('.album-photo-card');
+  if (selectedPhotoIds.length === cards.length) {
+    selectedPhotoIds = [];
+    cards.forEach(function(card) {
+      card.style.outline = '2px solid transparent';
+      var checkmark = card.querySelector('.photo-checkmark');
+      if (checkmark) checkmark.style.display = 'none';
+    });
+  } else {
+    selectedPhotoIds = [];
+    cards.forEach(function(card) {
+      var pid = parseInt(card.getAttribute('data-photo-id'));
+      selectedPhotoIds.push(pid);
+      card.style.outline = '2px solid var(--isp-gold)';
+      var checkmark = card.querySelector('.photo-checkmark');
+      if (checkmark) checkmark.style.display = 'flex';
+    });
+  }
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  document.getElementById('selected-count').textContent = selectedPhotoIds.length;
+}
+
+function bulkRemoveSelected() {
+  if (selectedPhotoIds.length === 0) {
+    alert('No photos selected.');
+    return;
+  }
+  if (!confirm('Remove ' + selectedPhotoIds.length + ' photo(s) from this album?')) return;
+  fetch('/admin/albums/' + albumId + '/photos/bulk-remove', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+    body: JSON.stringify({ photo_ids: selectedPhotoIds })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert(data.message || 'Failed to remove photos.');
+      }
     });
 }
 

@@ -517,6 +517,27 @@ def remove_photo_from_album(album_id, photo_id):
     return jsonify({"success": True, "message": "Photo removed from album."})
 
 
+@admin_bp.route("/albums/<int:album_id>/photos/bulk-remove", methods=["POST"])
+@admin_required
+def bulk_remove_photos(album_id):
+    data = request.get_json(force=True)
+    photo_ids = data.get("photo_ids", [])
+    if not photo_ids:
+        return jsonify({"success": False, "message": "No photos selected."}), 400
+    removed = 0
+    for pid in photo_ids:
+        ap = AlbumPhoto.query.filter_by(album_id=album_id, photo_id=pid).first()
+        if ap:
+            db.session.delete(ap)
+            removed += 1
+    db.session.commit()
+    new_count = len(Album.query.get_or_404(album_id).photos)
+    msg = f"{removed} photo(s) removed from album. ({new_count}/{MAX_ALBUM_PHOTOS})"
+    if new_count < MIN_ALBUM_PHOTOS:
+        msg += f" Warning: album needs at least {MIN_ALBUM_PHOTOS} photos."
+    return jsonify({"success": True, "message": msg, "photo_count": new_count})
+
+
 @admin_bp.route("/albums/<int:album_id>/cover", methods=["POST"])
 @admin_required
 def set_album_cover(album_id):
