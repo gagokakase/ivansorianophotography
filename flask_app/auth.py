@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import secrets
+import random
 import requests
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
@@ -12,6 +13,22 @@ auth_bp = Blueprint("auth", __name__)
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_DURATION = timedelta(minutes=15)
 SESSION_DURATION = timedelta(minutes=30)
+OTP_EXPIRY = timedelta(minutes=1)
+
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+
+def start_otp_flow(user):
+    from app import send_otp_email
+    code = generate_otp()
+    session["otp_code"] = code
+    session["otp_user_id"] = user.id
+    session["otp_email"] = user.email
+    session["otp_expiry"] = (datetime.utcnow() + OTP_EXPIRY).isoformat()
+    sent = send_otp_email(user.email, code)
+    return sent
 
 
 def log_action(user_id, action, detail=None):
@@ -27,46 +44,147 @@ def login():
             return redirect(url_for("admin.dashboard"))
         return redirect(url_for("client.gallery"))
 
+    # On GET, clear stale OTP session if expired
+    if request.method == "GET":
+        otp_expiry_str = session.get("otp_expiry")
+        if otp_expiry_str:
+            try:
+                if datetime.utcnow() > datetime.fromisoformat(otp_expiry_str):
+                    session.pop("otp_code", None)
+                    session.pop("otp_user_id", None)
+                    session.pop("otp_email", None)
+                    session.pop("otp_expiry", None)
+            except (ValueError, TypeError):
+                session.pop("otp_code", None)
+                session.pop("otp_user_id", None)
+                session.pop("otp_email", None)
+                session.pop("otp_expiry", None)
+
+    otp_step = session.get("otp_user_id") is not None
+    otp_expiry = session.get("otp_expiry") if otp_step else None
+
     if request.method == "POST":
-        email = (request.form.get("email") or "").strip().lower()
-        password = sanitize_password(request.form.get("password"))
+        step = request.form.get("step", "credentials")
 
-        user = User.query.filter_by(email=email).first()
+        if step == "otp":
+            entered_code = (request.form.get("otp_code") or "").strip()
+            stored_code = session.get("otp_code")
+            expiry_str = session.get("otp_expiry")
 
-        if user and user.locked_until and user.locked_until > datetime.utcnow():
-            remaining = user.locked_until - datetime.utcnow()
-            minutes = int(remaining.total_seconds() // 60)
-            flash(f"Account locked due to too many failed attempts. Try again in {minutes} minute(s).", "error")
-            return render_template("login.html")
+            if not stored_code or not expiry_str:
+                flash("Login session expired. Please sign in again.", "error")
+                session.pop("otp_code", None)
+                session.pop("otp_user_id", None)
+                session.pop("otp_email", None)
+                session.pop("otp_expiry", None)
+                return render_template("login.html", otp_step=False)
 
-        if user and user.check_password(password):
-            user.failed_login_count = 0
-            user.locked_until = None
-            db.session.commit()
-            login_user(user, duration=SESSION_DURATION)
-            log_action(user.id, "login_success")
-            if user.is_admin:
-                return redirect(url_for("admin.dashboard"))
-            return redirect(url_for("client.gallery"))
+            expiry = datetime.fromisoformat(expiry_str)
+            if datetime.utcnow() > expiry:
+                flash("Verification code expired. Please sign in again.", "error")
+                session.pop("otp_code", None)
+                session.pop("otp_user_id", None)
+                session.pop("otp_email", None)
+                session.pop("otp_expiry", None)
+                return render_template("login.html", otp_step=False)
 
-        if user:
-            user.failed_login_count = (user.failed_login_count or 0) + 1
-            if user.failed_login_count >= MAX_FAILED_ATTEMPTS:
-                user.locked_until = datetime.utcnow() + LOCKOUT_DURATION
-                db.session.commit()
-                log_action(user.id, "account_locked", f"Locked after {user.failed_login_count} failed attempts")
-                flash("Account locked due to too many failed attempts. Try again in 15 minutes.", "error")
+            if entered_code == stored_code:
+                user_id = session.pop("otp_user_id")
+                session.pop("otp_code", None)
+                session.pop("otp_email", None)
+                session.pop("otp_expiry", None)
+
+                user = User.query.get(user_id)
+                if not user:
+                    flash("Account not found. Please contact support.", "error")
+                    return render_template("login.html", otp_step=False)
+
+                login_user(user, duration=SESSION_DURATION)
+                log_action(user.id, "login_success", "via OTP")
+                if user.is_admin:
+                    return redirect(url_for("admin.dashboard"))
+                return redirect(url_for("client.gallery"))
             else:
-                db.session.commit()
-                log_action(user.id, "login_failed", f"Attempt {user.failed_login_count}/{MAX_FAILED_ATTEMPTS}")
-                remaining = MAX_FAILED_ATTEMPTS - user.failed_login_count
-                flash(f"Invalid email or password. {remaining} attempt(s) remaining.", "error")
+                flash("Invalid verification code. Please try again.", "error")
+                return render_template("login.html", otp_step=True, otp_expiry=session.get("otp_expiry"))
+
         else:
-            flash("Invalid email or password.", "error")
+            email = (request.form.get("email") or "").strip().lower()
+            password = sanitize_password(request.form.get("password"))
 
-        return render_template("login.html")
+            user = User.query.filter_by(email=email).first()
 
-    return render_template("login.html")
+            if user and user.locked_until and user.locked_until > datetime.utcnow():
+                remaining = user.locked_until - datetime.utcnow()
+                minutes = int(remaining.total_seconds() // 60)
+                flash(f"Account locked due to too many failed attempts. Try again in {minutes} minute(s).", "error")
+                return render_template("login.html", otp_step=False)
+
+            if user and user.check_password(password):
+                user.failed_login_count = 0
+                user.locked_until = None
+                db.session.commit()
+
+                sent = start_otp_flow(user)
+                if sent:
+                    flash("A verification code has been sent to your email.", "success")
+                    return render_template("login.html", otp_step=True, otp_expiry=session.get("otp_expiry"))
+                else:
+                    flash("Could not send verification email. Please try again.", "error")
+                    return render_template("login.html", otp_step=False)
+
+            if user:
+                user.failed_login_count = (user.failed_login_count or 0) + 1
+                if user.failed_login_count >= MAX_FAILED_ATTEMPTS:
+                    user.locked_until = datetime.utcnow() + LOCKOUT_DURATION
+                    db.session.commit()
+                    log_action(user.id, "account_locked", f"Locked after {user.failed_login_count} failed attempts")
+                    flash("Account locked due to too many failed attempts. Try again in 15 minutes.", "error")
+                else:
+                    db.session.commit()
+                    log_action(user.id, "login_failed", f"Attempt {user.failed_login_count}/{MAX_FAILED_ATTEMPTS}")
+                    remaining = MAX_FAILED_ATTEMPTS - user.failed_login_count
+                    flash(f"Invalid email or password. {remaining} attempt(s) remaining.", "error")
+            else:
+                flash("Invalid email or password.", "error")
+
+            return render_template("login.html", otp_step=False)
+
+    return render_template("login.html", otp_step=otp_step, otp_expiry=otp_expiry)
+
+
+@auth_bp.route("/resend-otp", methods=["POST"])
+def resend_otp():
+    user_id = session.get("otp_user_id")
+    if not user_id:
+        flash("Login session expired. Please sign in again.", "error")
+        return redirect(url_for("auth.login"))
+
+    user = User.query.get(user_id)
+    if not user:
+        flash("Account not found. Please sign in again.", "error")
+        session.pop("otp_code", None)
+        session.pop("otp_user_id", None)
+        session.pop("otp_email", None)
+        session.pop("otp_expiry", None)
+        return redirect(url_for("auth.login"))
+
+    sent = start_otp_flow(user)
+    if sent:
+        flash("A new verification code has been sent to your email.", "success")
+    else:
+        flash("Could not resend verification code. Please try again.", "error")
+
+    return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/cancel-otp", methods=["POST"])
+def cancel_otp():
+    session.pop("otp_code", None)
+    session.pop("otp_user_id", None)
+    session.pop("otp_email", None)
+    session.pop("otp_expiry", None)
+    return redirect(url_for("auth.login"))
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
