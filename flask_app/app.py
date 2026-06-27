@@ -113,12 +113,11 @@ def save_inquiry(data):
 
 
 def send_inquiry_email(data):
-    """Send inquiry data to the photographer's Gmail via SMTP."""
+    """Send inquiry data to the photographer's email. Tries SMTP first, then Resend API."""
     gmail_user = os.environ.get("GMAIL_USER", "")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
+    resend_api_key = os.environ.get("RESEND_API_KEY", "")
     recipient = "ics.photog@gmail.com"
-    if not gmail_user or not gmail_password:
-        return False
 
     subject = f"New Inquiry from {data['name']} - {data['eventType'].title()}"
 
@@ -215,31 +214,62 @@ def send_inquiry_email(data):
         f"\nMessage:\n{data['message']}\n"
     )
 
-    msg = MIMEMultipart("alternative")
-    msg["From"] = gmail_user
-    msg["To"] = recipient
-    msg["Reply-To"] = data["email"]
-    msg["Subject"] = subject
-    msg.attach(MIMEText(plain_body, "plain", "utf-8"))
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
+    # Try SMTP first (works locally)
+    if gmail_user and gmail_password:
+        msg = MIMEMultipart("alternative")
+        msg["From"] = gmail_user
+        msg["To"] = recipient
+        msg["Reply-To"] = data["email"]
+        msg["Subject"] = subject
+        msg.attach(MIMEText(plain_body, "plain", "utf-8"))
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-    try:
         try:
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
-                server.login(gmail_user, gmail_password)
-                server.sendmail(gmail_user, recipient, msg.as_string())
-        except Exception as ssl_err:
-            print(f"SMTP SSL (465) failed, trying STARTTLS (587): {ssl_err}")
-            with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                server.login(gmail_user, gmail_password)
-                server.sendmail(gmail_user, recipient, msg.as_string())
-        return True
-    except Exception as e:
-        print(f"SMTP error: {e}")
-        return False
+            try:
+                with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+                    server.login(gmail_user, gmail_password)
+                    server.sendmail(gmail_user, recipient, msg.as_string())
+            except Exception as ssl_err:
+                print(f"SMTP SSL (465) failed, trying STARTTLS (587): {ssl_err}")
+                with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+                    server.login(gmail_user, gmail_password)
+                    server.sendmail(gmail_user, recipient, msg.as_string())
+            return True
+        except Exception as e:
+            print(f"SMTP error: {e}")
+
+    # Fallback: Resend API via HTTP (works on Railway where SMTP is blocked)
+    if resend_api_key:
+        try:
+            import requests as req
+            from_email = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
+            resp = req.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {resend_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": f"Ivan Soriano Photography <{from_email}>",
+                    "to": [recipient],
+                    "reply_to": data["email"],
+                    "subject": subject,
+                    "html": html_body,
+                    "text": plain_body,
+                },
+                timeout=15,
+            )
+            if resp.status_code == 200:
+                return True
+            else:
+                print(f"Resend API error: {resp.status_code} - {resp.text}")
+        except Exception as e:
+            print(f"Resend request error: {type(e).__name__}: {e}")
+
+    return False
 
 
 def send_otp_email(to_email, otp_code):
@@ -314,24 +344,34 @@ def send_otp_email(to_email, otp_code):
         except Exception as e:
             print(f"SMTP failed entirely: {e}")
 
-    # Fallback: Resend API (works on Railway and other hosted platforms)
+    # Fallback: Resend API via HTTP (works on Railway where SMTP is blocked)
     if resend_api_key:
         try:
-            import resend
-            resend.api_key = resend_api_key
+            import requests as req
             from_email = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
             print(f"Attempting Resend: from={from_email} to={to_email}", flush=True)
-            r = resend.Emails.send({
-                "from": f"Ivan Soriano Photography <{from_email}>",
-                "to": [to_email],
-                "subject": subject,
-                "html": html_body,
-                "text": plain_body,
-            })
-            print(f"OTP sent via Resend: {r}", flush=True)
-            return True
+            resp = req.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {resend_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": f"Ivan Soriano Photography <{from_email}>",
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html_body,
+                    "text": plain_body,
+                },
+                timeout=15,
+            )
+            print(f"Resend response: {resp.status_code} {resp.text}", flush=True)
+            if resp.status_code == 200:
+                return True
+            else:
+                print(f"Resend API error: {resp.status_code} - {resp.text}", flush=True)
         except Exception as e:
-            print(f"Resend API error: {type(e).__name__}: {e}", flush=True)
+            print(f"Resend request error: {type(e).__name__}: {e}", flush=True)
 
     print("No email method available (SMTP and Resend both failed/not configured)", flush=True)
     return False
