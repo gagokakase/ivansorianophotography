@@ -320,6 +320,7 @@ def send_otp_email(to_email, otp_code):
             import resend
             resend.api_key = resend_api_key
             from_email = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
+            print(f"Attempting Resend: from={from_email} to={to_email}", flush=True)
             r = resend.Emails.send({
                 "from": f"Ivan Soriano Photography <{from_email}>",
                 "to": [to_email],
@@ -327,12 +328,12 @@ def send_otp_email(to_email, otp_code):
                 "html": html_body,
                 "text": plain_body,
             })
-            print(f"OTP sent via Resend: {r}")
+            print(f"OTP sent via Resend: {r}", flush=True)
             return True
         except Exception as e:
-            print(f"Resend API error: {e}")
+            print(f"Resend API error: {type(e).__name__}: {e}", flush=True)
 
-    print("No email method available (SMTP and Resend both failed/not configured)")
+    print("No email method available (SMTP and Resend both failed/not configured)", flush=True)
     return False
 
 
