@@ -243,11 +243,10 @@ def send_inquiry_email(data):
 
 
 def send_otp_email(to_email, otp_code):
-    """Send a 6-digit OTP code to the user's email via SMTP."""
+    """Send a 6-digit OTP code to the user's email. Tries SMTP first, then Resend API."""
     gmail_user = os.environ.get("GMAIL_USER", "")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
-    if not gmail_user or not gmail_password:
-        return False
+    resend_api_key = os.environ.get("RESEND_API_KEY", "")
 
     subject = "Your Login Code - Ivan Soriano Photography"
 
@@ -288,30 +287,53 @@ def send_otp_email(to_email, otp_code):
 
     plain_body = f"Your login code for Ivan Soriano Photography is: {otp_code}\n\nThis code expires in 1 minute."
 
-    msg = MIMEMultipart("alternative")
-    msg["From"] = gmail_user
-    msg["To"] = to_email
-    msg["Subject"] = subject
-    msg.attach(MIMEText(plain_body, "plain", "utf-8"))
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
+    # Try SMTP first (works locally)
+    if gmail_user and gmail_password:
+        msg = MIMEMultipart("alternative")
+        msg["From"] = gmail_user
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(plain_body, "plain", "utf-8"))
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-    try:
         try:
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
-                server.login(gmail_user, gmail_password)
-                server.sendmail(gmail_user, to_email, msg.as_string())
-        except Exception as ssl_err:
-            print(f"SMTP SSL (465) failed, trying STARTTLS (587): {ssl_err}")
-            with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                server.login(gmail_user, gmail_password)
-                server.sendmail(gmail_user, to_email, msg.as_string())
-        return True
-    except Exception as e:
-        print(f"OTP email error: {e}")
-        return False
+            try:
+                with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+                    server.login(gmail_user, gmail_password)
+                    server.sendmail(gmail_user, to_email, msg.as_string())
+                return True
+            except Exception as ssl_err:
+                print(f"SMTP SSL (465) failed, trying STARTTLS (587): {ssl_err}")
+                with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+                    server.login(gmail_user, gmail_password)
+                    server.sendmail(gmail_user, to_email, msg.as_string())
+                return True
+        except Exception as e:
+            print(f"SMTP failed entirely: {e}")
+
+    # Fallback: Resend API (works on Railway and other hosted platforms)
+    if resend_api_key:
+        try:
+            import resend
+            resend.api_key = resend_api_key
+            from_email = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
+            r = resend.Emails.send({
+                "from": f"Ivan Soriano Photography <{from_email}>",
+                "to": [to_email],
+                "subject": subject,
+                "html": html_body,
+                "text": plain_body,
+            })
+            print(f"OTP sent via Resend: {r}")
+            return True
+        except Exception as e:
+            print(f"Resend API error: {e}")
+
+    print("No email method available (SMTP and Resend both failed/not configured)")
+    return False
 
 
 def seed_admin():
