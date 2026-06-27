@@ -224,9 +224,18 @@ def send_inquiry_email(data):
     msg.attach(MIMEText(html_body, "html", "utf-8"))
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(gmail_user, gmail_password)
-            server.sendmail(gmail_user, recipient, msg.as_string())
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+                server.login(gmail_user, gmail_password)
+                server.sendmail(gmail_user, recipient, msg.as_string())
+        except Exception as ssl_err:
+            print(f"SMTP SSL (465) failed, trying STARTTLS (587): {ssl_err}")
+            with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(gmail_user, gmail_password)
+                server.sendmail(gmail_user, recipient, msg.as_string())
         return True
     except Exception as e:
         print(f"SMTP error: {e}")
@@ -287,9 +296,18 @@ def send_otp_email(to_email, otp_code):
     msg.attach(MIMEText(html_body, "html", "utf-8"))
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(gmail_user, gmail_password)
-            server.sendmail(gmail_user, to_email, msg.as_string())
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+                server.login(gmail_user, gmail_password)
+                server.sendmail(gmail_user, to_email, msg.as_string())
+        except Exception as ssl_err:
+            print(f"SMTP SSL (465) failed, trying STARTTLS (587): {ssl_err}")
+            with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(gmail_user, gmail_password)
+                server.sendmail(gmail_user, to_email, msg.as_string())
         return True
     except Exception as e:
         print(f"OTP email error: {e}")
