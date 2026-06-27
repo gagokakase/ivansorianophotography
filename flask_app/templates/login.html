@@ -123,63 +123,6 @@
           {% endif %}
         {% endwith %}
 
-        {% if otp_step %}
-        <!-- OTP Verification Step -->
-        <div class="text-center mb-8">
-          <div class="flex items-center justify-center gap-4 mb-3">
-            <div style="width: 28px; height: 1px; background-color: var(--isp-gold);"></div>
-            <span class="uppercase" style="font-family: var(--font-body); color: var(--isp-gold); letter-spacing: 0.3em; font-size: 12px;">Verify</span>
-            <div style="width: 28px; height: 1px; background-color: var(--isp-gold);"></div>
-          </div>
-          <h1 class="text-3xl sm:text-4xl" style="font-family: var(--font-display); color: var(--isp-cream); font-weight: 300;">Enter Code</h1>
-          <p style="color: var(--isp-text-muted); font-size: 14px; margin-top: 4px;">Check your email for the 6-digit code</p>
-        </div>
-
-        <form method="POST" action="/login">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <input type="hidden" name="step" value="otp" />
-          <div class="mb-6">
-            <div class="relative flex justify-center">
-              <input type="text" name="otp_code" required autofocus inputmode="numeric" pattern="[0-9]*" maxlength="6"
-                id="otp-input"
-                class="login-input text-center"
-                style="font-size:28px;letter-spacing:0.4em;font-weight:600;color:var(--isp-gold);width:100%;padding:18px 16px;outline:none;text-align:center;"
-                placeholder="000000"
-                oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
-            </div>
-          </div>
-          <button type="submit" id="verify-btn"
-            class="login-btn w-full py-3.5 uppercase text-sm">
-            Verify Code
-          </button>
-        </form>
-
-        <!-- Timer -->
-        <div class="text-center mt-5">
-          <p id="otp-timer" style="font-family: var(--font-body); font-size: 13px; color: var(--isp-text-muted);">
-            <i class="bi bi-clock" style="font-size: 12px;"></i> Code expires in <span id="timer-display" style="color: var(--isp-gold); font-weight: 600;">1:00</span>
-          </p>
-          <p id="otp-expired" style="display:none; font-family: var(--font-body); font-size: 13px; color: #f87171;">
-            <i class="bi bi-exclamation-triangle" style="font-size: 12px;"></i> Code expired. Please resend.
-          </p>
-        </div>
-
-        <div class="flex items-center justify-between mt-4">
-          <form method="POST" action="/resend-otp" id="resend-form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button type="submit" id="resend-btn" style="color: var(--isp-gold); font-size: 13px; text-decoration: none; background:none;border:none;cursor:pointer;">
-              <i class="bi bi-arrow-repeat" style="font-size: 12px;"></i> Resend Code
-            </button>
-          </form>
-          <form method="POST" action="/cancel-otp">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button type="submit" style="color: var(--isp-text-muted); font-size: 13px; text-decoration: none; background:none;border:none;cursor:pointer;">
-              <i class="bi bi-x-circle" style="font-size: 12px;"></i> Cancel
-            </button>
-          </form>
-        </div>
-
-        {% else %}
         <!-- Credentials Step -->
         <div class="text-center mb-8">
           <div class="flex items-center justify-center gap-4 mb-3">
@@ -193,7 +136,6 @@
 
         <form method="POST" action="/login">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <input type="hidden" name="step" value="credentials" />
           <div class="mb-5">
             <label class="block mb-2 uppercase" style="font-size: 11px; letter-spacing: 0.2em; color: var(--isp-text-muted);">Email</label>
             <div class="relative">
@@ -253,7 +195,6 @@
             <a href="/register" style="color: var(--isp-gold); text-decoration: none; font-weight: 500;">Register here</a>
           </p>
         </div>
-        {% endif %}
       </div>
 
       <p class="text-center mt-6">
@@ -265,48 +206,6 @@
   </div>
 
   <script>
-    {% if otp_step and otp_expiry %}
-    (function() {
-      var expiryStr = {{ otp_expiry|tojson }};
-      var expiry = new Date(expiryStr + 'Z').getTime();
-      var timerDisplay = document.getElementById('timer-display');
-      var expiredMsg = document.getElementById('otp-expired');
-      var timerP = document.getElementById('otp-timer');
-      var verifyBtn = document.getElementById('verify-btn');
-      var otpInput = document.getElementById('otp-input');
-      var resendBtn = document.getElementById('resend-btn');
-
-      function updateTimer() {
-        var now = Date.now();
-        var remaining = Math.max(0, Math.floor((expiry - now) / 1000));
-
-        if (remaining <= 0) {
-          timerP.style.display = 'none';
-          expiredMsg.style.display = 'block';
-          verifyBtn.disabled = true;
-          verifyBtn.style.opacity = '0.5';
-          verifyBtn.style.cursor = 'not-allowed';
-          otpInput.disabled = true;
-          otpInput.style.opacity = '0.5';
-          resendBtn.click();
-          return;
-        }
-
-        var mins = Math.floor(remaining / 60);
-        var secs = remaining % 60;
-        timerDisplay.textContent = mins + ':' + (secs < 10 ? '0' + secs : secs);
-
-        if (remaining <= 10) {
-          timerDisplay.style.color = '#f87171';
-        }
-
-        setTimeout(updateTimer, 1000);
-      }
-
-      updateTimer();
-    })();
-    {% endif %}
-
     function togglePassword() {
       var field = document.getElementById('password-field');
       var icon = document.getElementById('eye-icon');

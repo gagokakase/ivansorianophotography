@@ -113,10 +113,11 @@ def save_inquiry(data):
 
 
 def send_inquiry_email(data):
-    """Send inquiry data to the photographer's email. Tries SMTP first, then Resend API."""
+    """Send inquiry data to the photographer's email via SMTP."""
     gmail_user = os.environ.get("GMAIL_USER", "")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
-    resend_api_key = os.environ.get("RESEND_API_KEY", "")
+    if not gmail_user or not gmail_password:
+        return False
     recipient = "ics.photog@gmail.com"
 
     subject = f"New Inquiry from {data['name']} - {data['eventType'].title()}"
@@ -214,167 +215,22 @@ def send_inquiry_email(data):
         f"\nMessage:\n{data['message']}\n"
     )
 
-    # Try SMTP first (works locally)
-    if gmail_user and gmail_password:
-        msg = MIMEMultipart("alternative")
-        msg["From"] = gmail_user
-        msg["To"] = recipient
-        msg["Reply-To"] = data["email"]
-        msg["Subject"] = subject
-        msg.attach(MIMEText(plain_body, "plain", "utf-8"))
-        msg.attach(MIMEText(html_body, "html", "utf-8"))
+    msg = MIMEMultipart("alternative")
+    msg["From"] = gmail_user
+    msg["To"] = recipient
+    msg["Reply-To"] = data["email"]
+    msg["Subject"] = subject
+    msg.attach(MIMEText(plain_body, "plain", "utf-8"))
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-        try:
-            try:
-                with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
-                    server.login(gmail_user, gmail_password)
-                    server.sendmail(gmail_user, recipient, msg.as_string())
-            except Exception as ssl_err:
-                print(f"SMTP SSL (465) failed, trying STARTTLS (587): {ssl_err}")
-                with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
-                    server.ehlo()
-                    server.starttls()
-                    server.ehlo()
-                    server.login(gmail_user, gmail_password)
-                    server.sendmail(gmail_user, recipient, msg.as_string())
-            return True
-        except Exception as e:
-            print(f"SMTP error: {e}")
-
-    # Fallback: Resend API via HTTP (works on Railway where SMTP is blocked)
-    if resend_api_key:
-        try:
-            import requests as req
-            from_email = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
-            resp = req.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {resend_api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "from": f"Ivan Soriano Photography <{from_email}>",
-                    "to": [recipient],
-                    "reply_to": data["email"],
-                    "subject": subject,
-                    "html": html_body,
-                    "text": plain_body,
-                },
-                timeout=15,
-            )
-            if resp.status_code == 200:
-                return True
-            else:
-                print(f"Resend API error: {resp.status_code} - {resp.text}")
-        except Exception as e:
-            print(f"Resend request error: {type(e).__name__}: {e}")
-
-    return False
-
-
-def send_otp_email(to_email, otp_code):
-    """Send a 6-digit OTP code to the user's email. Tries SMTP first, then Resend API."""
-    gmail_user = os.environ.get("GMAIL_USER", "")
-    gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
-    resend_api_key = os.environ.get("RESEND_API_KEY", "")
-
-    subject = "Your Login Code - Ivan Soriano Photography"
-
-    html_body = f"""\
-<html>
-<body style="margin:0;padding:0;background-color:#080C09;font-family:'Inter',system-ui,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#080C09;padding:40px 20px;">
-    <tr>
-      <td align="center">
-        <table width="480" cellpadding="0" cellspacing="0" style="background-color:#111714;border:1px solid rgba(200,169,110,0.15);border-radius:12px;overflow:hidden;">
-          <tr>
-            <td style="background-color:#1F4830;padding:24px 40px;border-bottom:1px solid rgba(200,169,110,0.2);text-align:center;">
-              <h1 style="margin:0;color:#C8A96E;font-size:20px;font-weight:500;letter-spacing:0.05em;">Login Verification</h1>
-              <p style="margin:6px 0 0 0;color:#9DAD9F;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;">Ivan Soriano Photography</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:36px 40px;text-align:center;">
-              <p style="margin:0 0 24px 0;color:#F5F0E1;font-size:15px;line-height:1.7;">Use the code below to complete your login. This code expires in 1 minute.</p>
-              <div style="display:inline-block;padding:20px 40px;background-color:#0D120F;border:1px solid rgba(200,169,110,0.2);border-radius:10px;">
-                <span style="font-size:36px;font-weight:600;letter-spacing:0.4em;color:#C8A96E;font-family:'Inter',monospace;">{otp_code}</span>
-              </div>
-              <p style="margin:24px 0 0 0;color:#9DAD9F;font-size:13px;">If you didn't request this code, you can safely ignore this email.</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:16px 40px;background-color:#0D120F;border-top:1px solid rgba(200,169,110,0.08);">
-              <p style="margin:0;color:#9DAD9F;font-size:11px;text-align:center;letter-spacing:0.05em;">This is an automated message from Ivan Soriano Photography.</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-"""
-
-    plain_body = f"Your login code for Ivan Soriano Photography is: {otp_code}\n\nThis code expires in 1 minute."
-
-    # Try SMTP first (works locally)
-    if gmail_user and gmail_password:
-        msg = MIMEMultipart("alternative")
-        msg["From"] = gmail_user
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(plain_body, "plain", "utf-8"))
-        msg.attach(MIMEText(html_body, "html", "utf-8"))
-
-        try:
-            try:
-                with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
-                    server.login(gmail_user, gmail_password)
-                    server.sendmail(gmail_user, to_email, msg.as_string())
-                return True
-            except Exception as ssl_err:
-                print(f"SMTP SSL (465) failed, trying STARTTLS (587): {ssl_err}")
-                with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
-                    server.ehlo()
-                    server.starttls()
-                    server.ehlo()
-                    server.login(gmail_user, gmail_password)
-                    server.sendmail(gmail_user, to_email, msg.as_string())
-                return True
-        except Exception as e:
-            print(f"SMTP failed entirely: {e}")
-
-    # Fallback: Resend API via HTTP (works on Railway where SMTP is blocked)
-    if resend_api_key:
-        try:
-            import requests as req
-            from_email = os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev")
-            print(f"Attempting Resend: from={from_email} to={to_email}", flush=True)
-            resp = req.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {resend_api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "from": f"Ivan Soriano Photography <{from_email}>",
-                    "to": [to_email],
-                    "subject": subject,
-                    "html": html_body,
-                    "text": plain_body,
-                },
-                timeout=15,
-            )
-            print(f"Resend response: {resp.status_code} {resp.text}", flush=True)
-            if resp.status_code == 200:
-                return True
-            else:
-                print(f"Resend API error: {resp.status_code} - {resp.text}", flush=True)
-        except Exception as e:
-            print(f"Resend request error: {type(e).__name__}: {e}", flush=True)
-
-    print("No email method available (SMTP and Resend both failed/not configured)", flush=True)
-    return False
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(gmail_user, gmail_password)
+            server.sendmail(gmail_user, recipient, msg.as_string())
+        return True
+    except Exception as e:
+        print(f"SMTP error: {e}")
+        return False
 
 
 def seed_admin():
